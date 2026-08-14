@@ -27,7 +27,7 @@ services:
         value: 5000
       - key: JWT_SECRET
         generateValue: true
-      - key: FRONTEND_URL
+      - key: CLIENT_URL
         # We will populate this automatically with the frontend's URL later.
         value: ""
 
