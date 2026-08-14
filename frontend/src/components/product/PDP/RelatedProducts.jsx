@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../../utils/api';
 import ProductCard from '../ProductCard';
 import styles from './PDP.module.css';
 
@@ -10,7 +10,7 @@ const RelatedProducts = ({ currentProduct }) => {
   useEffect(() => {
     const fetchRelated = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/products');
+        const res = await api.get('/products');
         const allProducts = res.data.data.products || [];
         
         const categoryId = currentProduct?.categoryId;

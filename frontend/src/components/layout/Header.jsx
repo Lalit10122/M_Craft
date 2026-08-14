@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, User, X, Menu, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
 import useCartStore from '../../store/useCartStore';
 import useAuthStore from '../../store/useAuthStore';
 import PromoBanner from '../product/PromoBanner';
@@ -41,7 +40,7 @@ const Header = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/products/suggest?q=${debouncedSearchQuery}`);
+        const res = await api.get(`/products/suggest?q=${debouncedSearchQuery}`);
         setSuggestions(res.data.data);
       } catch (err) {
         console.error('Search failed', err);

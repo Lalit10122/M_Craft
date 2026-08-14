@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Heart, SlidersHorizontal, X } from 'lucide-react';
-import axios from 'axios';
 import api from '../../utils/api';
 import ProductCard from '../../components/product/ProductCard';
 import RevealGrid from '../../components/common/RevealGrid';
@@ -56,11 +55,11 @@ const Shop = () => {
     const fetchProducts = async () => {
       page === 1 ? setLoading(true) : setLoadingMore(true);
       try {
-        let url = `http://localhost:5000/api/products?page=${page}`;
+        let url = `/products?page=${page}`;
         if (query) url += `&q=${encodeURIComponent(query)}`;
         if (categorySlug) url += `&category=${encodeURIComponent(categorySlug)}`;
         
-        const res = await axios.get(url);
+        const res = await api.get(url);
         const fetchedProducts = res.data.data.products;
         
         if (page === 1) {

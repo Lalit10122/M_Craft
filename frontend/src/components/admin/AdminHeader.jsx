@@ -1,6 +1,6 @@
 import React from 'react';
+import api from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { User, LogOut, Settings, Menu } from 'lucide-react';
 import styles from './AdminHeader.module.css';
 
@@ -9,7 +9,7 @@ const AdminHeader = ({ toggleSidebar }) => {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/logout');
+      await api.post('/auth/logout');
     } catch (err) {
       console.error('Logout error', err);
     } finally {

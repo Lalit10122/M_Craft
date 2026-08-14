@@ -3,13 +3,13 @@ import { mockProducts } from './fixtures/products';
 import { mockOrders, mockReturns } from './fixtures/orders';
 import { mockUsers } from './fixtures/users';
 
-const API_URL = 'http://localhost:5000/api'; // Mocking against expected backend URL
+const API_URL = import.meta.env.VITE_API_URL || `${API_URL}'; // Mocking against expected backend URL
 
 export const handlers = [
   // -------------------------
   // Auth & 2FA
   // -------------------------
-  http.post('http://localhost:5000/api/auth/login', async ({ request }) => {
+  http.post(`${API_URL}/auth/login', async ({ request }) => {
     const body = await request.json();
     if (body.email === 'admin@aureliajewels.com' && body.password === 'admin123') {
       // Simulate requires 2FA setup first time, or verify if returning
@@ -22,7 +22,7 @@ export const handlers = [
     return HttpResponse.json({ message: 'Invalid credentials' }, { status: 401 });
   }),
 
-  http.post('http://localhost:5000/api/admin/2fa/setup', async ({ request }) => {
+  http.post(`${API_URL}/admin/2fa/setup', async ({ request }) => {
     // Return dummy QR base64 and secret
     return HttpResponse.json({
       success: true,
@@ -33,7 +33,7 @@ export const handlers = [
     });
   }),
 
-  http.post('http://localhost:5000/api/admin/2fa/verify-setup', async ({ request }) => {
+  http.post(`${API_URL}/admin/2fa/verify-setup', async ({ request }) => {
     const body = await request.json();
     if (body.code && body.code.length === 6) {
       return HttpResponse.json({
@@ -48,14 +48,14 @@ export const handlers = [
     return HttpResponse.json({ message: 'Invalid code' }, { status: 400 });
   }),
 
-  http.post('http://localhost:5000/api/auth/logout', () => {
+  http.post(`${API_URL}/auth/logout', () => {
     return HttpResponse.json({ success: true });
   }),
 
   // -------------------------
   // Dashboard
   // -------------------------
-  http.get('http://localhost:5000/api/admin/dashboard/stats', () => {
+  http.get(`${API_URL}/admin/dashboard/stats', () => {
     return HttpResponse.json({
       success: true,
       data: {
@@ -80,7 +80,7 @@ export const handlers = [
   // -------------------------
   // Users / Customers
   // -------------------------
-  http.get('http://localhost:5000/api/admin/users', () => {
+  http.get(`${API_URL}/admin/users', () => {
     return HttpResponse.json({ success: true, data: { users: mockUsers } });
   }),
 

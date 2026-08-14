@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { ArrowLeft } from 'lucide-react';
 import useCartStore from '../../store/useCartStore';
 import useAuthStore from '../../store/useAuthStore';
@@ -33,7 +32,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/products');
+        const res = await api.get('/products');
         const products = res.data.data.products;
         const found = products.find(p => p.slug === slug || p.id === slug);
         setProduct(found || null);

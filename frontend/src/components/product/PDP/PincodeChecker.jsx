@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../../utils/api';
 import { MapPin, Truck } from 'lucide-react';
 import styles from './PDP.module.css';
 
@@ -12,7 +12,7 @@ const PincodeChecker = () => {
     if (pincode.length !== 6) return;
     setChecking(true);
     try {
-      const res = await axios.get(`http://localhost:5000/api/delivery/check?pincode=${pincode}`);
+      const res = await api.get(`/delivery/check?pincode=${pincode}`);
       setDeliveryInfo(res.data.data);
     } catch (err) {
       console.error(err);

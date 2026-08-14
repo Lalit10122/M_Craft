@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, X } from 'lucide-react';
-import axios from 'axios';
 import ProductCard from '../../components/product/ProductCard';
 import RevealGrid from '../../components/common/RevealGrid';
 import RevealCard from '../../components/common/RevealCard';
@@ -41,8 +40,8 @@ const CampaignLandingPage = () => {
     const fetchProducts = async () => {
       page === 1 ? setLoading(true) : setLoadingMore(true);
       try {
-        const url = `http://localhost:5000/api/products?promotionId=${id}&page=${page}`;
-        const res = await axios.get(url);
+        const url = `/products?promotionId=${id}&page=${page}`;
+        const res = await api.get(url);
         const fetchedProducts = res.data.data.products;
         
         if (page === 1) {
