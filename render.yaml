@@ -1,0 +1,51 @@
+services:
+  # 1. The PostgreSQL Database
+  - type: psql
+    name: malkincraft-db
+    plan: free
+    region: ohio # Optional, adjust to your preference
+
+  # 2. The Node.js Express Backend
+  - type: web
+    name: malkincraft-backend
+    env: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: node server.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: malkincraft-db
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        # We will populate this automatically with the frontend's URL later, 
+        # but for now, we leave it blank or default.
+        value: ""
+
+  # 3. The Vite React Frontend
+  - type: web
+    name: malkincraft-frontend
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        # This dynamically grabs the backend's URL and appends /api
+        fromService:
+          type: web
+          name: malkincraft-backend
+          property: url
+          envVarKey: RENDER_BACKEND_URL
+        # Wait, render.yaml doesn't natively support appending strings easily in the free tier
+        # So it's best to set VITE_API_URL manually in the dashboard after the backend deploys.
+        # But we define the placeholder here.
+        value: "https://malkincraft-backend.onrender.com/api" 
