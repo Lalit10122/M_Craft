@@ -1,0 +1,436 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PACKED
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURNED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  RAZORPAY
+  COD
+}
+
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  PICKUP_SCHEDULED
+  RECEIVED
+  REFUND_COMPLETED
+}
+
+enum AudienceSection {
+  WOMEN
+  MEN
+  UNISEX
+}
+
+enum PromotionType {
+  PERCENTAGE_OFF
+  FLAT_OFF
+  BUY_X_GET_Y
+}
+
+enum PromotionScope {
+  ALL_PRODUCTS
+  CATEGORY
+  COLLECTION
+  SPECIFIC_PRODUCTS
+}
+
+model User {
+  id                    String               @id @default(cuid())
+  name                  String
+  email                 String               @unique
+  passwordHash          String?
+  authProvider          String               @default("LOCAL")
+  googleId              String?              @unique
+  avatarUrl             String?
+  phone                 String?              @unique
+  phoneVerified         Boolean              @default(false)
+  role                  Role                 @default(CUSTOMER)
+  isBlocked             Boolean              @default(false)
+  twoFactorEnabled      Boolean              @default(false)
+  twoFactorSecret       String?
+  twoFactorBackupCodes  String[]             @default([])
+  failedLoginAttempts   Int                  @default(0)
+  lockedUntil                DateTime?
+  deletedAt                  DateTime?
+  createdAt                  DateTime             @default(now())
+  lastAbandonedCartEmailAt   DateTime?
+
+  addresses             Address[]
+  cartItems             CartItem[]
+  wishlist              Wishlist[]
+  orders                Order[]
+  reviews               Review[]
+  refreshTokens         RefreshToken[]
+  passwordResetTokens   PasswordResetToken[]
+  recentlyViewed        RecentlyViewed[]
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  section   AudienceSection @default(UNISEX)
+  parentId  String?
+  parent    Category?       @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  Category[]      @relation("CategoryHierarchy")
+  products  Product[]
+  attributes CategoryAttribute[]
+}
+
+model Collection {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  products  ProductCollection[]
+}
+
+model ProductCollection {
+  id           String     @id @default(cuid())
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id])
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id])
+
+  @@unique([productId, collectionId])
+}
+
+model Product {
+  id               String               @id @default(cuid())
+  name             String
+  slug             String               @unique
+  description      String
+  categoryId       String
+  category         Category             @relation(fields: [categoryId], references: [id])
+  material         String
+  color            String
+  basePrice        Float
+  mrp              Float
+  stockQty         Int                  @default(0)
+  images           String[]
+  isActive         Boolean              @default(true)
+  isBestSeller     Boolean              @default(false)
+  metaTitle        String?
+  metaDescription  String?
+  createdAt            DateTime             @default(now())
+  lastLowStockAlertAt  DateTime?
+
+  variants         ProductVariant[]
+  collections      ProductCollection[]
+  cartItems        CartItem[]
+  wishlistItems    Wishlist[]
+  orderItems       OrderItem[]
+  reviews          Review[]
+
+  attributeValues  ProductAttributeValue[]
+  promotions       PromotionProduct[]
+  boxBuilderConfig BoxBuilderEligibleProduct[]
+  recentlyViewed   RecentlyViewed[]
+}
+
+model ProductVariant {
+  id          String      @id @default(cuid())
+  productId   String
+  product     Product     @relation(fields: [productId], references: [id])
+  label       String
+  price       Float
+  stockQty    Int         @default(0)
+  isDefault   Boolean     @default(false)
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  fullName  String
+  phone     String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  isDefault Boolean  @default(false)
+}
+
+model CartItem {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  productId String?
+  product   Product?         @relation(fields: [productId], references: [id])
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  quantity  Int             @default(1)
+  
+  boxBuilderConfigId String?
+  boxBuilderSelections Json?
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+model Order {
+  id                 String        @id @default(cuid())
+  userId             String
+  user               User          @relation(fields: [userId], references: [id])
+  totalAmount        Float
+  status             OrderStatus   @default(PENDING)
+  paymentMethod      PaymentMethod @default(RAZORPAY)
+  razorpayOrderId    String?
+  razorpayPaymentId  String?
+  razorpayRefundId   String?
+  refundAmount       Float?
+  invoiceNumber      String?       @unique
+  invoiceUrl         String?
+  trackingNumber     String?
+  trackingUrl        String?
+  shippingAddress    Json
+  isGift             Boolean       @default(false)
+  giftMessage        String?
+  freeGiftProductId  String?
+  couponId           String?
+  createdAt          DateTime      @default(now())
+
+  items              OrderItem[]
+  returnRequests     ReturnRequest[]
+}
+
+model OrderItem {
+  id              String          @id @default(cuid())
+  orderId         String
+  order           Order           @relation(fields: [orderId], references: [id])
+  productId       String?
+  product         Product?         @relation(fields: [productId], references: [id])
+  variantId       String?
+  variant         ProductVariant? @relation(fields: [variantId], references: [id])
+  quantity        Int
+  priceAtPurchase Float
+
+  boxBuilderConfigId String?
+  boxBuilderSelections Json?
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  rating      Int
+  comment     String?
+  imageUrl    String?
+  isApproved  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Coupon {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  discountType  String
+  value         Float
+  minOrderValue Float    @default(0)
+  validTill     DateTime
+  usageLimit    Int?
+  timesUsed     Int      @default(0)
+  isActive      Boolean  @default(true)
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tokenHash String
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tokenHash String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  phone     String
+  otpHash   String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model ServiceablePincode {
+  id            String  @id @default(cuid())
+  pincode       String  @unique
+  estimatedDays String
+  codAvailable  Boolean @default(true)
+
+  sameDayAvailable  Boolean @default(false)
+  sameDayCutoffTime String?
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  actorId     String
+  actorEmail  String
+  targetType  String
+  targetId    String?
+  metadata    Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+}
+
+model ReturnRequest {
+  id            String       @id @default(cuid())
+  orderId       String
+  order         Order        @relation(fields: [orderId], references: [id])
+  reason        String
+  comment       String?
+  imageUrl      String?
+  status        ReturnStatus @default(REQUESTED)
+  adminNote     String?
+  refundAmount  Float?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+
+
+model CategoryAttribute {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  name        String
+  key         String
+
+  values      ProductAttributeValue[]
+}
+
+model ProductAttributeValue {
+  id           String            @id @default(cuid())
+  productId    String
+  product      Product           @relation(fields: [productId], references: [id])
+  attributeId  String
+  attribute    CategoryAttribute @relation(fields: [attributeId], references: [id])
+  value        String
+}
+
+model Promotion {
+  id              String          @id @default(cuid())
+  name            String
+  type            PromotionType
+  value           Float
+  scope           PromotionScope
+  categoryId      String?
+  collectionId    String?
+  buyQty          Int?
+  getQty          Int?
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean         @default(true)
+  excludesFreeGift Boolean        @default(false)
+  bannerImageUrl  String?
+  createdAt       DateTime        @default(now())
+
+  specificProducts PromotionProduct[]
+
+  @@index([isActive, startDate, endDate])
+}
+
+model PromotionProduct {
+  id            String     @id @default(cuid())
+  promotionId   String
+  promotion     Promotion  @relation(fields: [promotionId], references: [id])
+  productId     String
+  product       Product    @relation(fields: [productId], references: [id])
+}
+
+model BoxBuilderConfig {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  itemsRequired  Int
+  bundlePrice    Float
+  isActive       Boolean  @default(true)
+
+  eligibleProducts BoxBuilderEligibleProduct[]
+}
+
+model BoxBuilderEligibleProduct {
+  id                  String            @id @default(cuid())
+  boxBuilderConfigId  String
+  boxBuilderConfig    BoxBuilderConfig  @relation(fields: [boxBuilderConfigId], references: [id])
+  productId           String
+  product             Product           @relation(fields: [productId], references: [id])
+}
+
+model StaticPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  content     String
+  updatedAt   DateTime @updatedAt
+}
+
+model FaqItem {
+  id         String  @id @default(cuid())
+  question   String
+  answer     String
+  category   String?
+  sortOrder  Int     @default(0)
+}
+
+model RecentlyViewed {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  viewedAt   DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
