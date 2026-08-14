@@ -1,15 +1,18 @@
-services:
-  # 1. The PostgreSQL Database
-  - type: postgres
-    name: malkincraft-db
-    plan: free
-    region: ohio # Optional, adjust to your preference
+# Render Blueprint Configuration
+# Documentation: https://render.com/docs/blueprint-spec
 
-  # 2. The Node.js Express Backend
+databases:
+  - name: malkincraft-db
+    plan: free
+    region: ohio
+
+services:
+  # 1. The Node.js Express Backend
   - type: web
     name: malkincraft-backend
     env: node
     plan: free
+    region: ohio
     rootDir: server
     buildCommand: npm install && npm run build
     startCommand: node server.js
@@ -25,27 +28,19 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        # We will populate this automatically with the frontend's URL later, 
-        # but for now, we leave it blank or default.
+        # We will populate this automatically with the frontend's URL later.
         value: ""
 
-  # 3. The Vite React Frontend
+  # 2. The Vite React Frontend
   - type: web
     name: malkincraft-frontend
     env: static
     plan: free
+    region: ohio
     rootDir: frontend
     buildCommand: npm install && npm run build
     publishPath: dist
     envVars:
       - key: VITE_API_URL
-        # This dynamically grabs the backend's URL and appends /api
-        fromService:
-          type: web
-          name: malkincraft-backend
-          property: url
-          envVarKey: RENDER_BACKEND_URL
-        # Wait, render.yaml doesn't natively support appending strings easily in the free tier
-        # So it's best to set VITE_API_URL manually in the dashboard after the backend deploys.
-        # But we define the placeholder here.
-        value: "https://malkincraft-backend.onrender.com/api" 
+        # We must populate this in the dashboard after the backend deploys.
+        value: "https://malkincraft-backend.onrender.com/api"
