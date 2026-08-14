@@ -41,9 +41,21 @@ const app = express();
 // Helmet for HTTP header security (CSP will be tightened once frontend domain is finalized)
 app.use(helmet());
 
-// CORS — allow only the frontend origin
+// CORS — allow frontend origins safely
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://malkincraft-frontend.onrender.com',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true, // needed for httpOnly refresh-token cookies
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
