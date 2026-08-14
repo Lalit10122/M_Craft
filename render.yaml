@@ -32,8 +32,9 @@ services:
         value: ""
 
   # 2. The Vite React Frontend
-  - type: static
+  - type: web
     name: malkincraft-frontend
+    env: static
     plan: free
     region: ohio
     rootDir: frontend
