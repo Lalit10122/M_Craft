@@ -75,8 +75,12 @@ const globalLimiter = rateLimit({
 app.use('/api', globalLimiter);
 
 // ---------------------------------------------------------------------------
-// Health Check
+// Health Check & Root
 // ---------------------------------------------------------------------------
+app.get('/', (req, res) => {
+  res.send('<h1>Malkincraft Backend is Live 🚀</h1><p>All API endpoints are available under <code>/api</code></p>');
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Malkincraft API is running', timestamp: new Date().toISOString() });
 });
