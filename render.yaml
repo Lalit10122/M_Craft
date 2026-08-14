@@ -32,14 +32,13 @@ services:
         value: ""
 
   # 2. The Vite React Frontend
-  - type: web
+  - type: static
     name: malkincraft-frontend
-    env: static
     plan: free
     region: ohio
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishPath: dist
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
         # We must populate this in the dashboard after the backend deploys.
