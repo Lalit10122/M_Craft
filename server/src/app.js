@@ -34,6 +34,9 @@ import { prisma } from './config/db.js';
 
 const app = express();
 
+// Trust reverse proxy (required for Render / express-rate-limit)
+app.set('trust proxy', 1);
+
 // ---------------------------------------------------------------------------
 // Security Middleware
 // ---------------------------------------------------------------------------
