@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { HelmetProvider } from 'react-helmet-async';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageTransition from './components/layout/PageTransition';
@@ -64,9 +65,12 @@ const MarketingDashboard = React.lazy(() => import('./pages/admin/dashboards/Mar
 const SupplyChainDashboard = React.lazy(() => import('./pages/admin/dashboards/SupplyChainDashboard'));
 const CRMDashboard = React.lazy(() => import('./pages/admin/dashboards/CRMDashboard'));
 
+import AnnouncementBar from './components/layout/AnnouncementBar';
+
 // Layout wrapper for customer facing pages
 const StoreLayout = ({ children }) => (
   <div className="store-layout">
+    <AnnouncementBar />
     <Header />
     <CartDrawer />
     <main className="main-content" style={{ minHeight: 'calc(100vh - 200px)', padding: 'var(--spacing-xl) 0', overflow: 'hidden' }}>
@@ -153,12 +157,16 @@ const AnimatedRoutes = () => {
   );
 };
 
+import { ToastProvider } from './components/common/ToastContext';
+
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'missing_client_id';
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <Router>
-        <AnimatedRoutes />
+        <ToastProvider>
+          <AnimatedRoutes />
+        </ToastProvider>
       </Router>
     </GoogleOAuthProvider>
   );

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, ShoppingCart, User, X, Menu, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, ShoppingCart, User, X, Menu, ChevronDown, ChevronUp, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useCartStore from '../../store/useCartStore';
 import useAuthStore from '../../store/useAuthStore';
+import useWishlistStore from '../../store/useWishlistStore';
 import PromoBanner from '../product/PromoBanner';
 import api from '../../utils/api';
 import styles from './Header.module.css';
@@ -32,6 +33,7 @@ const Header = () => {
   const navigate = useNavigate();
   const toggleCart = useCartStore(state => state.toggleCart);
   const cartCount = useCartStore(state => state.getCartCount());
+  const wishlistCount = useWishlistStore(state => state.getWishlistCount());
   
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
@@ -93,24 +95,16 @@ const Header = () => {
       <header className={styles.header}>
         <div className={`container ${styles.headerContainer}`}>
           
-          {/* Mobile Hamburger (Left) */}
-          <button 
-            className={`show-mobile-flex ${styles.iconBtn}`} 
-            style={{ display: 'none' }} // overridden by show-mobile-flex which has !important in CSS
-            onClick={() => setIsMobileMenuOpen(true)}
-          >
-            <Menu size={24} />
-          </button>
-
-          {/* Logo (Left on desktop) */}
-          <div className={styles.logo}>
+          {/* Logo (Left) */}
+          <div className={styles.logo} style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
             <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', height: '100%' }}>
               <h2 style={{ fontSize: '1.8rem', fontWeight: '600' }}>Aurelia</h2>
             </Link>
           </div>
 
-          {/* Desktop Nav */}
-          <nav className={`${styles.nav} hide-tablet-down`} style={{ flex: 1, marginLeft: 'var(--spacing-xl)' }}>
+          {/* Desktop Nav (Center) */}
+          <nav className={`${styles.nav} hide-tablet-down`} style={{ flex: 'auto', display: 'flex', justifyContent: 'center' }}>
+            <Link to="/">Home</Link>
             <div 
               className={styles.navItem} 
               onMouseEnter={() => setActiveMenu('shop')} 
@@ -141,30 +135,22 @@ const Header = () => {
                           </div>
                         </div>
                       ))}
-                      <div>
-                        <h4 style={{ textTransform: 'uppercase', letterSpacing: '1px', borderBottom: '1px solid var(--color-border)', paddingBottom: '8px', marginBottom: '12px' }}>
-                          Trending Collections
-                        </h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          <Link to="/collections" style={{ color: 'var(--color-text)' }}>Office Siren</Link>
-                          <Link to="/collections" style={{ color: 'var(--color-text)' }}>Dopamine Drip</Link>
-                        </div>
-                      </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-            <Link to="/collections">Collections</Link>
-            <Link to="/about">Our Story</Link>
-            <Link to="/journal">Journal</Link>
+            <Link to="/collections">Categories</Link>
+            <Link to="/shop?sort=newest">New Arrivals</Link>
+            <Link to="/shop?sort=bestselling">Best Sellers</Link>
+            <Link to="/about">About Us</Link>
           </nav>
 
           {/* Actions (Right) */}
-          <div className={styles.actions} style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <div className={styles.actions} style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '24px' }}>
             
-            {/* Desktop Expanding Search Bar */}
-            <div className={`${styles.searchWrapper} hide-mobile`}>
+            {/* Expanding Search Bar */}
+            <div className={`${styles.searchWrapper}`}>
               <AnimatePresence>
                 {isSearchOpen && (
                   <motion.form 
@@ -177,7 +163,7 @@ const Header = () => {
                   >
                     <input
                       type="text"
-                      placeholder="Search jewelry..."
+                      placeholder="Search..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       autoFocus
@@ -214,6 +200,25 @@ const Header = () => {
               </button>
             </div>
 
+            {/* Wishlist Icon */}
+            <Link to="/wishlist" className={styles.iconBtn} style={{ position: 'relative' }}>
+              <Heart size={20} />
+              <AnimatePresence mode="popLayout">
+                {wishlistCount > 0 && (
+                  <motion.span 
+                    key={wishlistCount}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                    className={styles.cartBadge}
+                  >
+                    {wishlistCount}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Link>
+
+            {/* Account Icon */}
             {isAuthenticated ? (
               <div className={`${styles.iconBtn} hide-mobile`} style={{ position: 'relative' }} onMouseEnter={() => setActiveMenu('user')} onMouseLeave={() => setActiveMenu(null)}>
                 <User size={20} />
@@ -234,6 +239,7 @@ const Header = () => {
               <Link to="/login" className={`${styles.iconBtn} hide-mobile`}><User size={20} /></Link>
             )}
 
+            {/* Cart Icon */}
             <button className={styles.iconBtn} style={{ position: 'relative' }} onClick={toggleCart}>
               <ShoppingCart size={20} />
               <AnimatePresence mode="popLayout">
@@ -249,6 +255,15 @@ const Header = () => {
                   </motion.span>
                 )}
               </AnimatePresence>
+            </button>
+
+            {/* Mobile Hamburger (Right) */}
+            <button 
+              className={`show-mobile-flex ${styles.iconBtn}`} 
+              style={{ display: 'none' }} // overridden by show-mobile-flex which has !important in CSS
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
             </button>
           </div>
         </div>

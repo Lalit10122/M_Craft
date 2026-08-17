@@ -16,6 +16,8 @@ import ProductAccordions from '../../components/product/PDP/ProductAccordions';
 import StickyCartBar from '../../components/product/PDP/StickyCartBar';
 import ProductReviews from '../../components/product/PDP/ProductReviews';
 import RelatedProducts from '../../components/product/PDP/RelatedProducts';
+import ProductDetailSkeleton from '../../components/product/PDP/ProductDetailSkeleton';
+import SEO from '../../components/common/SEO';
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -62,7 +64,7 @@ const ProductDetail = () => {
     }
   };
 
-  if (loading) return <div className="container" style={{ padding: '100px 20px', textAlign: 'center' }}>Loading product details...</div>;
+  if (loading) return <ProductDetailSkeleton />;
   
   if (!product) return (
     <div className="container" style={{ padding: '100px 20px', textAlign: 'center' }}>
@@ -73,6 +75,14 @@ const ProductDetail = () => {
 
   return (
     <>
+      {product && (
+        <SEO 
+          title={product.name} 
+          description={product.description?.substring(0, 160)}
+          image={product.images?.[0]?.url || product.images?.[0] || product.firstImage}
+          type="product"
+        />
+      )}
       <div className="container" style={{ padding: '40px 20px', position: 'relative' }}>
         {/* Breadcrumb / Back */}
         <button 

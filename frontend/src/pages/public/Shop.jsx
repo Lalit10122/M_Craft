@@ -4,8 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, X } from 'lucide-react';
 import api from '../../utils/api';
 import ProductCard from '../../components/product/ProductCard';
+import ProductCardSkeleton from '../../components/product/ProductCardSkeleton';
 import RevealGrid from '../../components/common/RevealGrid';
 import RevealCard from '../../components/common/RevealCard';
+import QuickViewModal from '../../components/product/QuickViewModal';
+import SEO from '../../components/common/SEO';
 
 const FilterAccordion = ({ title, children, defaultOpen = true }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -44,8 +47,11 @@ const Shop = () => {
   
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [categoryAttributes, setCategoryAttributes] = useState([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [categoryAttributes, setCategoryAttributes] = useState([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [page, setPage] = useState(1);
@@ -113,8 +119,14 @@ const Shop = () => {
     fetchProducts();
   }, [query, categorySlug, page]);
 
+  const filterDesc = categorySlug ? `${categorySlug.replace('-', ' ')}` : query ? `results for "${query}"` : 'all collections';
+
   return (
     <div className="container" style={{ paddingBottom: 'var(--spacing-3xl)' }}>
+      <SEO 
+        title={categorySlug ? `${categorySlug.replace('-', ' ').toUpperCase()} | Shop` : query ? `Search: ${query}` : 'Shop All'} 
+        description={`Explore our handcrafted jewelry. Browsing ${filterDesc}.`}
+      />
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--spacing-xl)', paddingBottom: 'var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
         <div>
@@ -174,8 +186,12 @@ const Shop = () => {
 
         {/* Product Grid Area */}
         <main style={{ flex: 1 }}>
-          {loading && page === 1 ? (
-            <div style={{ textAlign: 'center', padding: 'var(--spacing-xxl)' }}>Loading collection...</div>
+          {loading ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-xl)' }}>
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </div>
           ) : products.length === 0 ? (
             <div style={{ padding: 'var(--spacing-xxl)', textAlign: 'center', background: 'white', borderRadius: '2px', border: '1px solid var(--color-border)' }}>
               <h3>No pieces found</h3>
@@ -187,11 +203,16 @@ const Shop = () => {
           ) : (
             <>
               <AnimatePresence mode="wait">
-                {/* 3 columns on desktop since we have a sidebar, 2 on tablet, 1/2 on mobile */}
                 <RevealGrid key={query || categorySlug || 'all'} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-xl)' }}>
                   {products.map((product, index) => (
                     <RevealCard key={product.id} index={index}>
-                      <ProductCard product={product} />
+                      <ProductCard 
+                        product={product} 
+                        onQuickView={(p) => {
+                          setQuickViewProduct(p);
+                          setIsQuickViewOpen(true);
+                        }}
+                      />
                     </RevealCard>
                   ))}
                 </RevealGrid>
@@ -272,6 +293,13 @@ const Shop = () => {
           </>
         )}
       </AnimatePresence>
+
+      {/* Quick View Modal */}
+      <QuickViewModal 
+        isOpen={isQuickViewOpen} 
+        onClose={() => setIsQuickViewOpen(false)} 
+        product={quickViewProduct} 
+      />
     </div>
   );
 };

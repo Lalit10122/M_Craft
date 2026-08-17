@@ -1,17 +1,23 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import useRecentlyViewedStore from '../../store/useRecentlyViewedStore';
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import api from '../../utils/api';
 import ProductCard from './ProductCard';
+import ProductCardSkeleton from './ProductCardSkeleton';
 import RevealGrid from '../common/RevealGrid';
 import RevealCard from '../common/RevealCard';
 
-const RecentlyViewedStrip = ({ onQuickView }) => {
-  const { items } = useRecentlyViewedStore();
+const NewArrivals = ({ onQuickView }) => {
+  const [newArrivals, setNewArrivals] = useState([]);
   const carouselRef = useRef(null);
   const shouldReduceMotion = useReducedMotion();
 
-  if (!items || items.length === 0) return null;
+  useEffect(() => {
+    api.get('/products?sort=newest&limit=8')
+      .then(res => setNewArrivals(res.data.data.products || res.data.data))
+      .catch(console.error);
+  }, []);
 
   const scrollCarousel = (dir) => {
     if (carouselRef.current) {
@@ -35,9 +41,9 @@ const RecentlyViewedStrip = ({ onQuickView }) => {
       style={{ marginTop: 'var(--spacing-xxl)' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--spacing-lg)' }}>
-        <h2 style={{ margin: 0, fontWeight: 700 }}>Recently Viewed</h2>
+        <h2 style={{ margin: 0, fontWeight: 700 }}>New Arrivals</h2>
         
-        {items.length > 4 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div className="hide-mobile" style={{ display: 'flex', gap: '8px' }}>
             <button 
               onClick={() => scrollCarousel('left')} 
@@ -54,7 +60,10 @@ const RecentlyViewedStrip = ({ onQuickView }) => {
               <ChevronRight size={20} />
             </button>
           </div>
-        )}
+          <Link to="/shop?sort=newest" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--color-secondary)', fontWeight: 600 }}>
+            View All <ArrowRight size={16} />
+          </Link>
+        </div>
       </div>
 
       <RevealGrid 
@@ -65,14 +74,22 @@ const RecentlyViewedStrip = ({ onQuickView }) => {
         }}
         className="no-scrollbar"
       >
-        {items.map((product, index) => (
-          <RevealCard key={product.id} index={index} style={{ minWidth: '280px', scrollSnapAlign: 'start', flexShrink: 0 }}>
-            <ProductCard product={product} onQuickView={onQuickView} />
-          </RevealCard>
-        ))}
+        {newArrivals.length === 0 ? (
+          [1, 2, 3, 4].map((i) => (
+            <div key={i} style={{ minWidth: '280px', flexShrink: 0 }}>
+              <ProductCardSkeleton />
+            </div>
+          ))
+        ) : (
+          newArrivals.map((product, index) => (
+            <RevealCard key={product.id} index={index} style={{ minWidth: '280px', scrollSnapAlign: 'start', flexShrink: 0 }}>
+              <ProductCard product={product} onQuickView={onQuickView} />
+            </RevealCard>
+          ))
+        )}
       </RevealGrid>
     </motion.div>
   );
 };
 
-export default RecentlyViewedStrip;
+export default NewArrivals;
