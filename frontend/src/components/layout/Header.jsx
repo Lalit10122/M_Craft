@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useCartStore from '../../store/useCartStore';
 import useAuthStore from '../../store/useAuthStore';
 import useWishlistStore from '../../store/useWishlistStore';
+import useThemeStore from '../../store/useThemeStore';
 import PromoBanner from '../product/PromoBanner';
 import api from '../../utils/api';
 import styles from './Header.module.css';
@@ -38,6 +39,7 @@ const Header = () => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
+  const theme = useThemeStore(state => state.theme);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -98,7 +100,11 @@ const Header = () => {
           {/* Logo (Left) */}
           <div className={styles.logo} style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
             <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', height: '100%' }}>
-              <h2 style={{ fontSize: '1.8rem', fontWeight: '600' }}>Aurelia</h2>
+              {theme?.logoUrl ? (
+                <img src={theme.logoUrl} alt="Aurelia" style={{ maxHeight: '40px' }} />
+              ) : (
+                <h2 style={{ fontSize: '1.8rem', fontWeight: '600', margin: 0 }}>Aurelia</h2>
+              )}
             </Link>
           </div>
 

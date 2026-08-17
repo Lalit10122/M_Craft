@@ -53,6 +53,10 @@ import {
     getFinancialAnalytics, getMarketingAnalytics, getSupplyChainAnalytics, getCrmAnalytics
 } from '../controllers/admin/adminAnalyticsController.js';
 
+import {
+    getAdminTheme, updateTheme, resetTheme, uploadLogo
+} from '../controllers/admin/themeController.js';
+
 const router = Router();
 
 // Apply auth and admin check to all routes
@@ -141,5 +145,11 @@ router.get('/analytics/financial', getFinancialAnalytics);
 router.get('/analytics/marketing', getMarketingAnalytics);
 router.get('/analytics/supply-chain', getSupplyChainAnalytics);
 router.get('/analytics/crm', getCrmAnalytics);
+
+// Theme
+router.get('/theme', getAdminTheme);
+router.put('/theme', updateTheme);
+router.post('/theme/reset', resetTheme);
+router.post('/theme/logo', upload.single('logo'), uploadLogo);
 
 export default router;

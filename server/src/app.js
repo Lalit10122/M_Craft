@@ -25,6 +25,7 @@ import promotionRoutes from './routes/promotionRoutes.js';
 import boxBuilderRoutes from './routes/boxBuilderRoutes.js';
 import pageRoutes from './routes/pageRoutes.js';
 import recentlyViewedRoutes from './routes/recentlyViewedRoutes.js';
+import themeRoutes from './routes/themeRoutes.js';
 
 // Middleware imports
 import errorHandler from './middleware/errorHandler.js';
@@ -138,6 +139,9 @@ app.use('/api/box-builder', boxBuilderRoutes);
 
 // Static Pages and FAQs
 app.use('/api/pages', pageRoutes);
+
+// Public Theme
+app.use('/api/theme', themeRoutes);
 
 // Reviews — the router has /products/:productId/reviews (public GET) and / (protected POST)
 app.use('/api/reviews', reviewRoutes);

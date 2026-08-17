@@ -58,6 +58,7 @@ const AdminCategoryAttributes = React.lazy(() => import('./pages/admin/CategoryA
 const AdminBoxBuilder = React.lazy(() => import('./pages/admin/BoxBuilder'));
 const AdminStaticPages = React.lazy(() => import('./pages/admin/StaticPages'));
 const AdminFaqManagement = React.lazy(() => import('./pages/admin/FaqManagement'));
+const ThemeCustomizer = React.lazy(() => import('./pages/admin/ThemeCustomizer'));
 
 // Sub-dashboards
 const FinancialDashboard = React.lazy(() => import('./pages/admin/dashboards/FinancialDashboard'));
@@ -152,15 +153,44 @@ const AnimatedRoutes = () => {
         <Route path="/admin/box-builders" element={<AdminProtectedRoute><AdminLayout><AdminBoxBuilder /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/admin/static-pages" element={<AdminProtectedRoute><AdminLayout><AdminStaticPages /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/admin/faqs" element={<AdminProtectedRoute><AdminLayout><AdminFaqManagement /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/admin/appearance" element={<AdminProtectedRoute><AdminLayout><ThemeCustomizer /></AdminLayout></AdminProtectedRoute>} />
       </Routes>
     </AnimatePresence>
   );
 };
 
 import { ToastProvider } from './components/common/ToastContext';
+import api from './utils/api';
+import useThemeStore from './store/useThemeStore';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'missing_client_id';
+
+  useEffect(() => {
+    api.get('/theme')
+      .then(res => {
+        const theme = res.data.data;
+        if (theme) {
+          const root = document.documentElement;
+          if (theme.primaryColor) root.style.setProperty('--color-primary', theme.primaryColor);
+          if (theme.secondaryColor) root.style.setProperty('--color-secondary', theme.secondaryColor);
+          if (theme.accentColor) root.style.setProperty('--color-accent', theme.accentColor);
+          if (theme.backgroundColor) root.style.setProperty('--color-background', theme.backgroundColor);
+          if (theme.textColor) root.style.setProperty('--color-text-main', theme.textColor);
+          
+          if (theme.headingFont) root.style.setProperty('--font-heading', `"${theme.headingFont}", serif`);
+          if (theme.bodyFont) root.style.setProperty('--font-body', `"${theme.bodyFont}", sans-serif`);
+          
+          if (theme.buttonStyle === 'sharp') root.style.setProperty('--button-radius', '0px');
+          else if (theme.buttonStyle === 'pill') root.style.setProperty('--button-radius', '50px');
+          else root.style.setProperty('--button-radius', '2px');
+          
+          useThemeStore.getState().setTheme(theme);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <Router>

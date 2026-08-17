@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, Grid, ShoppingBag, 
   RefreshCcw, Users, Tag, MessageSquare, 
   MapPin, AlertTriangle, Settings, X,
-  DollarSign, Megaphone, Truck, Heart
+  DollarSign, Megaphone, Truck, Heart, Palette
 } from 'lucide-react';
 import styles from './AdminSidebar.module.css';
 
@@ -44,6 +44,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Reviews', path: '/admin/reviews', icon: <MessageSquare size={18} />, badge: badges.pendingReviews, badgeColor: 'warning' },
     { name: 'Pincodes', path: '/admin/pincodes', icon: <MapPin size={18} /> },
     { name: 'Low Stock', path: '/admin/low-stock', icon: <AlertTriangle size={18} /> },
+    { name: 'Appearance', path: '/admin/appearance', icon: <Palette size={18} /> },
     { name: 'Settings', path: '/admin/settings', icon: <Settings size={18} /> },
   ];
 

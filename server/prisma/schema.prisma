@@ -434,3 +434,19 @@ model RecentlyViewed {
   @@unique([userId, productId])
   @@index([userId])
 }
+
+model ThemeSettings {
+  id                String   @id @default(cuid())
+  presetName        String?  // e.g. "Classic Gold", "Rose Blush" — null if fully custom
+  primaryColor      String   // hex, e.g. "#B8860B"
+  secondaryColor    String
+  accentColor       String
+  backgroundColor   String
+  textColor         String
+  headingFont       String   // must match an entry in the approved font list, not free text
+  bodyFont          String   // same constraint
+  buttonStyle       String   @default("rounded") // "rounded" | "sharp" | "pill"
+  logoUrl           String?  // S3 URL, uploaded the same way as product images
+  updatedAt         DateTime @updatedAt
+  updatedByAdminId  String?  // which admin last changed it, for the audit trail
+}
