@@ -1,6 +1,5 @@
 import { prisma } from '../../config/db.js';
 import { successResponse, errorResponse } from '../../utils/apiResponse.js';
-import { uploadToS3 } from '../../utils/s3Upload.js'; // Assuming this exists
 
 // DEFAULT THEME
 const DEFAULT_THEME = {
