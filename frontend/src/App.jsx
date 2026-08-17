@@ -1,10 +1,14 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { HelmetProvider } from 'react-helmet-async';
+import { ToastProvider } from './components/common/ToastContext';
+import api from './utils/api';
+import useThemeStore from './store/useThemeStore';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageTransition from './components/layout/PageTransition';
+import AnnouncementBar from './components/layout/AnnouncementBar';
 
 import CustomerLayout from './components/customer/CustomerLayout';
 import CartDrawer from './components/checkout/CartDrawer';
@@ -65,8 +69,6 @@ const FinancialDashboard = React.lazy(() => import('./pages/admin/dashboards/Fin
 const MarketingDashboard = React.lazy(() => import('./pages/admin/dashboards/MarketingDashboard'));
 const SupplyChainDashboard = React.lazy(() => import('./pages/admin/dashboards/SupplyChainDashboard'));
 const CRMDashboard = React.lazy(() => import('./pages/admin/dashboards/CRMDashboard'));
-
-import AnnouncementBar from './components/layout/AnnouncementBar';
 
 // Layout wrapper for customer facing pages
 const StoreLayout = ({ children }) => (
@@ -159,10 +161,7 @@ const AnimatedRoutes = () => {
   );
 };
 
-import { ToastProvider } from './components/common/ToastContext';
-import api from './utils/api';
-import useThemeStore from './store/useThemeStore';
-
+// Removed imports
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'missing_client_id';
 
