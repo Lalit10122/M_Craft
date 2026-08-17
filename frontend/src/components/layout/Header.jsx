@@ -102,15 +102,15 @@ const Header = () => {
             <Menu size={24} />
           </button>
 
-          {/* Logo (Centered on mobile, Left on desktop) */}
-          <div className={styles.logo} style={{ flex: 1, textAlign: 'center' }}>
-            <Link to="/" style={{ display: 'inline-block' }}>
-              <h2>Aurelia</h2>
+          {/* Logo (Left on desktop) */}
+          <div className={styles.logo}>
+            <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', height: '100%' }}>
+              <h2 style={{ fontSize: '1.8rem', fontWeight: '600' }}>Aurelia</h2>
             </Link>
           </div>
 
           {/* Desktop Nav */}
-          <nav className={`${styles.nav} hide-tablet-down`}>
+          <nav className={`${styles.nav} hide-tablet-down`} style={{ flex: 1, marginLeft: 'var(--spacing-xl)' }}>
             <div 
               className={styles.navItem} 
               onMouseEnter={() => setActiveMenu('shop')} 
@@ -156,7 +156,8 @@ const Header = () => {
               </AnimatePresence>
             </div>
             <Link to="/collections">Collections</Link>
-            <Link to="/about">About Us</Link>
+            <Link to="/about">Our Story</Link>
+            <Link to="/journal">Journal</Link>
           </nav>
 
           {/* Actions (Right) */}

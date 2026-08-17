@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import styles from './PDP.module.css';
 
@@ -13,14 +14,26 @@ const AccordionItem = ({ title, content, defaultOpen = false }) => {
         aria-expanded={isOpen}
       >
         <span>{title}</span>
-        {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
+          <ChevronDown size={20} />
+        </motion.div>
       </button>
       
-      {isOpen && (
-        <div className={styles.accordionContent}>
-          {content}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div className={styles.accordionContent}>
+              {content}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag } from 'lucide-react';
 import styles from './PDP.module.css';
 
@@ -21,23 +22,33 @@ const StickyCartBar = ({ product, onAddToCart, added }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (!isVisible || !product) return null;
+  if (!product) return null;
 
   return (
-    <div className={`show-mobile-flex ${styles.stickyCartBar}`}>
-      <div className={styles.stickyDetails}>
-        <span className={styles.stickyTitle}>{product.name}</span>
-        <span className={styles.stickyPrice}>₹{product.basePrice}</span>
-      </div>
-      <button 
-        onClick={onAddToCart} 
-        className={`btn btn-primary ${styles.stickyBtn}`}
-        disabled={isOutOfStock}
-      >
-        <ShoppingBag size={18} />
-        {added ? 'Added' : 'Add to Cart'}
-      </button>
-    </div>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div 
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+          className={`show-mobile-flex ${styles.stickyCartBar}`}
+        >
+          <div className={styles.stickyDetails}>
+            <span className={styles.stickyTitle}>{product.name}</span>
+            <span className={styles.stickyPrice}>₹{product.basePrice}</span>
+          </div>
+          <button 
+            onClick={onAddToCart} 
+            className={`btn btn-primary ${styles.stickyBtn}`}
+            disabled={isOutOfStock}
+          >
+            <ShoppingBag size={18} />
+            {added ? 'Added' : 'Add to Cart'}
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

@@ -10,27 +10,27 @@ import RevealCard from '../../components/common/RevealCard';
 const slides = [
   {
     id: 1,
-    image: 'https://picsum.photos/seed/hero/1600/900',
-    title: 'Dopamine Drip',
-    subtitle: 'Vibrant, chunky, and undeniably bold.',
-    cta: 'Shop the Collection',
+    image: 'https://images.unsplash.com/photo-1599643478524-fb5244dc6eb4?q=80&w=1600&auto=format&fit=crop',
+    title: 'Handcrafted Elegance',
+    subtitle: 'Discover jewelry designed with intention and crafted by master artisans.',
+    cta: 'Explore Collection',
     link: '/shop'
   },
   {
     id: 2,
-    image: 'https://picsum.photos/seed/hero2/1600/900',
-    title: 'The Office Siren',
-    subtitle: 'Sleek, sharp, and meant for business.',
+    image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=1600&auto=format&fit=crop',
+    title: 'The Terracotta Collection',
+    subtitle: 'Earthy tones and warm metals, perfect for the modern minimalist.',
     cta: 'Shop New Arrivals',
     link: '/shop'
   },
   {
     id: 3,
-    image: 'https://picsum.photos/seed/hero3/1600/900',
-    title: 'Free Gift With Purchase',
-    subtitle: 'Get a free minimalist ring on orders over ₹1500.',
-    cta: 'Claim Your Gift',
-    link: '/shop'
+    image: 'https://images.unsplash.com/photo-1629224316810-9d8805b95e76?q=80&w=1600&auto=format&fit=crop',
+    title: 'Rooted in Tradition',
+    subtitle: 'Every piece tells a story of heritage, skill, and passion.',
+    cta: 'Our Craft Story',
+    link: '/about'
   }
 ];
 
@@ -126,10 +126,13 @@ const Home = () => {
         <AnimatePresence initial={false}>
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 1.02 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 1 }}
+            animate={{ opacity: 1, scale: shouldReduceMotion ? 1 : 1.05 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0.3 : 0.8, ease: premiumEase }}
+            transition={{ 
+              opacity: { duration: 0.8, ease: premiumEase },
+              scale: { duration: 20, ease: 'linear' }
+            }}
             style={{
               position: 'absolute',
               top: 0, left: 0, right: 0, bottom: 0,
@@ -157,8 +160,9 @@ const Home = () => {
                   fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', 
                   marginBottom: 'var(--spacing-md)', 
                   color: 'white',
-                  fontWeight: 800,
-                  letterSpacing: '-1px',
+                  fontWeight: 400,
+                  fontFamily: 'var(--font-heading)',
+                  letterSpacing: '-0.5px',
                   lineHeight: 1.1
                 }}
               >
@@ -236,21 +240,21 @@ const Home = () => {
         style={{ background: 'var(--color-surface)', padding: 'var(--spacing-lg) 0', borderBottom: '1px solid var(--color-border)' }}
       >
         <div className="container responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', textAlign: 'center', gap: 'var(--spacing-md)' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <ShieldCheck size={28} color="var(--color-secondary)" />
-            <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>Secure Payments</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <ShieldCheck size={32} color="var(--color-primary)" strokeWidth={1.5} />
+            <span style={{ fontWeight: 500, fontSize: '0.95rem', letterSpacing: '0.5px' }}>Secure Payments</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <RefreshCcw size={28} color="var(--color-secondary)" />
-            <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>{settings.returnWindowDays ? `${settings.returnWindowDays} Day Returns` : 'Easy Returns'}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <RefreshCcw size={32} color="var(--color-primary)" strokeWidth={1.5} />
+            <span style={{ fontWeight: 500, fontSize: '0.95rem', letterSpacing: '0.5px' }}>{settings.returnWindowDays ? `${settings.returnWindowDays} Day Returns` : 'Easy Returns'}</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <Truck size={28} color="var(--color-secondary)" />
-            <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>{settings.freeShippingThreshold ? `Free Shipping Above ₹${settings.freeShippingThreshold}` : 'Free Fast Shipping'}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <Truck size={32} color="var(--color-primary)" strokeWidth={1.5} />
+            <span style={{ fontWeight: 500, fontSize: '0.95rem', letterSpacing: '0.5px' }}>{settings.freeShippingThreshold ? `Free Shipping Above ₹${settings.freeShippingThreshold}` : 'Free Fast Shipping'}</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <Award size={28} color="var(--color-secondary)" />
-            <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>1 Year Warranty</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <Award size={32} color="var(--color-primary)" strokeWidth={1.5} />
+            <span style={{ fontWeight: 500, fontSize: '0.95rem', letterSpacing: '0.5px' }}>1 Year Warranty</span>
           </div>
         </div>
       </motion.div>
@@ -356,6 +360,35 @@ const Home = () => {
             </div>
           )}
         </RevealGrid>
+      </motion.div>
+
+      {/* Craft Story Section */}
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={sectionVariants}
+        className="container" 
+        style={{ marginTop: 'var(--spacing-3xl)', marginBottom: 'var(--spacing-3xl)' }}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-xl)', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-md)' }}>The Art of Craft</h2>
+            <p style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--spacing-lg)', fontSize: '1.1rem', lineHeight: 1.8 }}>
+              We believe that true luxury lies in the details. Every piece of MalkinCraft jewelry begins its journey in the hands of master artisans who have spent decades perfecting their craft. From selecting ethically sourced materials to the final polish, our process honors traditional techniques while embracing modern design.
+            </p>
+            <Link to="/about" className="btn btn-outline" style={{ display: 'inline-block' }}>
+              Read Our Story
+            </Link>
+          </div>
+          <div style={{ position: 'relative', height: '450px', borderRadius: '4px', overflow: 'hidden' }}>
+            <img 
+              src="https://images.unsplash.com/photo-1620050843105-06d91d0637c3?q=80&w=800&auto=format&fit=crop" 
+              alt="Artisan crafting jewelry" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            />
+          </div>
+        </div>
       </motion.div>
 
       {/* Instagram / UGC Grid */}

@@ -1,14 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Heart, SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X } from 'lucide-react';
 import api from '../../utils/api';
 import ProductCard from '../../components/product/ProductCard';
 import RevealGrid from '../../components/common/RevealGrid';
 import RevealCard from '../../components/common/RevealCard';
 
+const FilterAccordion = ({ title, children, defaultOpen = true }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  return (
+    <div style={{ borderBottom: '1px solid var(--color-border)', padding: '16px 0' }}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500, padding: 0, color: '#111' }}
+      >
+        {title}
+        <span>{isOpen ? '-' : '+'}</span>
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 const Shop = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q');
   const categorySlug = searchParams.get('category');
   
@@ -66,14 +96,13 @@ const Shop = () => {
           setProducts(fetchedProducts);
         } else {
           setProducts(prev => {
-            // Prevent duplicates just in case React Strict Mode fires twice
             const existingIds = new Set(prev.map(p => p.id));
             const newProducts = fetchedProducts.filter(p => !existingIds.has(p.id));
             return [...prev, ...newProducts];
           });
         }
         
-        setHasMore(fetchedProducts.length >= 12); // Default limit is 12
+        setHasMore(fetchedProducts.length >= 12);
       } catch (err) {
         console.error(err);
       } finally {
@@ -82,63 +111,110 @@ const Shop = () => {
       }
     };
     fetchProducts();
-  }, [query, page]);
+  }, [query, categorySlug, page]);
 
   return (
-    <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
-        <h1 style={{ margin: 0 }}>
-          {query ? `Search Results for "${query}"` : (categorySlug ? categories.find(c => c.slug === categorySlug)?.name || 'Shop' : 'Shop Collection')}
-        </h1>
+    <div className="container" style={{ paddingBottom: 'var(--spacing-3xl)' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--spacing-xl)', paddingBottom: 'var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 400 }}>
+            {query ? `Search Results for "${query}"` : (categorySlug ? categories.find(c => c.slug === categorySlug)?.name || 'Collection' : 'The Collection')}
+          </h1>
+          <p style={{ color: 'var(--color-text-muted)', marginTop: '8px' }}>Explore our handcrafted pieces designed for the modern wardrobe.</p>
+        </div>
         
-        {/* Mobile Filter Button */}
+        {/* Mobile Filter Toggle */}
         <button 
           className="btn btn-outline show-mobile-flex" 
-          style={{ display: 'none', alignItems: 'center', gap: '8px' }}
+          style={{ display: 'none', alignItems: 'center', gap: '8px', padding: '8px 16px' }}
           onClick={() => setShowMobileFilters(true)}
         >
           <SlidersHorizontal size={18} /> Filters
         </button>
       </div>
 
-      {loading && page === 1 ? (
-        <div style={{ textAlign: 'center', padding: 'var(--spacing-xxl)' }}>Loading products...</div>
-      ) : products.length === 0 ? (
-        <div style={{ padding: 'var(--spacing-xxl)', textAlign: 'center', background: 'white', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-          <h3>No results found for "{query}"</h3>
-          <p style={{ color: 'var(--color-text-muted)', margin: 'var(--spacing-md) 0' }}>
-            Try a different search or browse our popular collections.
-          </p>
-          <a href="/shop" className="btn btn-outline">View All Products</a>
-        </div>
-      ) : (
-        <>
-          <AnimatePresence mode="wait">
-            <RevealGrid key={query || 'all'} className="responsive-grid">
-              {products.map((product, index) => (
-                <RevealCard key={product.id} index={index}>
-                  <ProductCard product={product} />
-                </RevealCard>
+      <div style={{ display: 'flex', gap: 'var(--spacing-xxl)' }}>
+        {/* Desktop Sidebar Filters */}
+        <aside style={{ width: '250px', flexShrink: 0 }} className="hide-mobile">
+          <FilterAccordion title="Categories" defaultOpen={true}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: !categorySlug ? 'var(--color-primary)' : '#555' }} onClick={() => setSearchParams({})}>
+              All Collections
+            </label>
+            {categories.filter(c => !c.parentId).map(parent => (
+              <div key={parent.id} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+                <strong style={{ fontSize: '0.95rem', color: '#111' }}>{parent.name}</strong>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
+                  {categories.filter(c => c.parentId === parent.id).map(child => (
+                    <label key={child.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: categorySlug === child.slug ? 'var(--color-primary)' : '#555' }} onClick={() => setSearchParams({ category: child.slug })}>
+                      {child.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </FilterAccordion>
+
+          {categoryAttributes.map(attr => (
+            <FilterAccordion key={attr.id} title={attr.name} defaultOpen={false}>
+              {attr.options?.split(',').map(opt => opt.trim()).filter(Boolean).map(opt => (
+                <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}>
+                  <input type="checkbox" style={{ accentColor: 'var(--color-primary)' }} /> {opt}
+                </label>
               ))}
-            </RevealGrid>
-          </AnimatePresence>
+            </FilterAccordion>
+          ))}
 
-          {hasMore && (
-            <div style={{ textAlign: 'center', marginTop: 'var(--spacing-xl)' }}>
-              <button 
-                className="btn btn-outline" 
-                onClick={() => setPage(p => p + 1)}
-                disabled={loadingMore}
-                style={{ padding: '12px 32px' }}
-              >
-                {loadingMore ? 'Loading...' : 'Load More Products'}
-              </button>
+          <FilterAccordion title="Price Range" defaultOpen={false}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="price" style={{ accentColor: 'var(--color-primary)' }} /> Under ₹1000</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="price" style={{ accentColor: 'var(--color-primary)' }} /> ₹1000 - ₹5000</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="price" style={{ accentColor: 'var(--color-primary)' }} /> Over ₹5000</label>
+          </FilterAccordion>
+        </aside>
+
+        {/* Product Grid Area */}
+        <main style={{ flex: 1 }}>
+          {loading && page === 1 ? (
+            <div style={{ textAlign: 'center', padding: 'var(--spacing-xxl)' }}>Loading collection...</div>
+          ) : products.length === 0 ? (
+            <div style={{ padding: 'var(--spacing-xxl)', textAlign: 'center', background: 'white', borderRadius: '2px', border: '1px solid var(--color-border)' }}>
+              <h3>No pieces found</h3>
+              <p style={{ color: 'var(--color-text-muted)', margin: 'var(--spacing-md) 0' }}>
+                We couldn't find any products matching your selection.
+              </p>
+              <button onClick={() => setSearchParams({})} className="btn btn-outline">Clear Filters</button>
             </div>
-          )}
-        </>
-      )}
+          ) : (
+            <>
+              <AnimatePresence mode="wait">
+                {/* 3 columns on desktop since we have a sidebar, 2 on tablet, 1/2 on mobile */}
+                <RevealGrid key={query || categorySlug || 'all'} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-xl)' }}>
+                  {products.map((product, index) => (
+                    <RevealCard key={product.id} index={index}>
+                      <ProductCard product={product} />
+                    </RevealCard>
+                  ))}
+                </RevealGrid>
+              </AnimatePresence>
 
-      {/* Mobile Filters Bottom Sheet */}
+              {hasMore && (
+                <div style={{ textAlign: 'center', marginTop: 'var(--spacing-3xl)' }}>
+                  <button 
+                    className="btn btn-outline" 
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={loadingMore}
+                    style={{ padding: '14px 40px', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.9rem' }}
+                  >
+                    {loadingMore ? 'Loading...' : 'Load More'}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </main>
+      </div>
+
+      {/* Mobile Filters Bottom Sheet (Keep as is, but style matched) */}
       <AnimatePresence>
         {showMobileFilters && (
           <>
@@ -154,57 +230,43 @@ const Shop = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTopLeftRadius: '16px', borderTopRightRadius: '16px', padding: 'var(--spacing-xl)', zIndex: 1001, maxHeight: '80vh', overflowY: 'auto' }}
+              style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTopLeftRadius: '12px', borderTopRightRadius: '12px', padding: 'var(--spacing-xl)', zIndex: 1001, maxHeight: '85vh', overflowY: 'auto' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
-                <h3 style={{ margin: 0 }}>Filters</h3>
-                <button onClick={() => setShowMobileFilters(false)} style={{ color: 'var(--color-text-muted)' }}><X size={24} /></button>
+                <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 400 }}>Filters</h3>
+                <button onClick={() => setShowMobileFilters(false)} style={{ color: '#111', background: 'none', border: 'none' }}><X size={24} /></button>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div>
-                  <h4 style={{ marginBottom: '8px' }}>Categories</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: !categorySlug ? 'bold' : 'normal', cursor: 'pointer' }} onClick={() => { setSearchParams({}); setShowMobileFilters(false); }}>
-                      All Products
-                    </label>
-                    {categories.filter(c => !c.parentId).map(parent => (
-                      <div key={parent.id} style={{ marginLeft: '8px', marginTop: '8px' }}>
-                        <strong>{parent.name}</strong>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', marginLeft: '8px' }}>
-                          {categories.filter(c => c.parentId === parent.id).map(child => (
-                            <label key={child.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => { setSearchParams({ category: child.slug }); setShowMobileFilters(false); }}>
-                              <input type="radio" checked={categorySlug === child.slug} readOnly /> {child.name}
-                            </label>
-                          ))}
-                        </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <FilterAccordion title="Categories" defaultOpen={true}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => { setSearchParams({}); setShowMobileFilters(false); }}>
+                    All Collections
+                  </label>
+                  {categories.filter(c => !c.parentId).map(parent => (
+                    <div key={parent.id} style={{ marginLeft: '8px', marginTop: '8px' }}>
+                      <strong>{parent.name}</strong>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', marginLeft: '8px' }}>
+                        {categories.filter(c => c.parentId === parent.id).map(child => (
+                          <label key={child.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => { setSearchParams({ category: child.slug }); setShowMobileFilters(false); }}>
+                            <input type="radio" checked={categorySlug === child.slug} readOnly style={{ accentColor: 'var(--color-primary)' }} /> {child.name}
+                          </label>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  ))}
+                </FilterAccordion>
                 
                 {categoryAttributes.map(attr => (
-                  <div key={attr.id} style={{ borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
-                    <h4 style={{ marginBottom: '8px' }}>{attr.name}</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {attr.options?.split(',').map(opt => opt.trim()).filter(Boolean).map(opt => (
-                        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <input type="checkbox" /> {opt}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                  <FilterAccordion key={attr.id} title={attr.name} defaultOpen={false}>
+                    {attr.options?.split(',').map(opt => opt.trim()).filter(Boolean).map(opt => (
+                      <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input type="checkbox" style={{ accentColor: 'var(--color-primary)' }} /> {opt}
+                      </label>
+                    ))}
+                  </FilterAccordion>
                 ))}
-                
-                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
-                  <h4 style={{ marginBottom: '8px' }}>Price</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="price" /> Under ₹1000</label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="price" /> ₹1000 - ₹5000</label>
-                  </div>
-                </div>
               </div>
-              <button className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--spacing-xl)' }} onClick={() => setShowMobileFilters(false)}>
-                Apply Filters
+              <button className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--spacing-xl)', padding: '16px' }} onClick={() => setShowMobileFilters(false)}>
+                View Results
               </button>
             </motion.div>
           </>

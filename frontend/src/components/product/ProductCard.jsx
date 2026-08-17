@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ShoppingBag, Heart } from 'lucide-react';
 import useCartStore from '../../store/useCartStore';
 import useAuthStore from '../../store/useAuthStore';
@@ -12,6 +12,7 @@ const ProductCard = ({ product, square = false }) => {
   const location = useLocation();
   const addItem = useCartStore(state => state.addItem);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const shouldReduceMotion = useReducedMotion();
 
   const toggleWishlist = (e) => {
     e.preventDefault();
@@ -62,18 +63,12 @@ const ProductCard = ({ product, square = false }) => {
           </div>
         )}
         
-        {/* Secondary image for hover */}
-        <motion.img 
-          src={product.images?.length > 1 ? product.images[1] : product.firstImage} 
-          alt={product.name} 
-          className="hover-only product-image"
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: square ? 'auto' : '300px', aspectRatio: square ? '1/1' : 'auto', objectFit: 'cover', opacity: hovered ? 1 : 0, transition: 'opacity 0.3s ease' }}
-          loading="lazy"
-        />
+        {/* Removed secondary image hover swap per Addendum */}
         
         {/* Wishlist Button Overlay */}
-        <button
+        <motion.button
           onClick={toggleWishlist}
+          whileTap={shouldReduceMotion ? {} : { scale: 0.8 }}
           style={{
             position: 'absolute',
             top: '10px',
@@ -91,8 +86,14 @@ const ProductCard = ({ product, square = false }) => {
             color: wishlisted ? '#dc2626' : '#111'
           }}
         >
-          <Heart size={18} fill={wishlisted ? '#dc2626' : 'transparent'} />
-        </button>
+          <motion.div
+            initial={false}
+            animate={{ scale: wishlisted ? [1, 1.2, 1] : 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Heart size={18} fill={wishlisted ? '#dc2626' : 'transparent'} />
+          </motion.div>
+        </motion.button>
 
         {/* Quick Add Button Overlay */}
         <AnimatePresence>

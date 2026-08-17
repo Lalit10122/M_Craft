@@ -83,7 +83,7 @@ const CartDrawer = () => {
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="cart-drawer"
             style={styles.drawer}
           >
