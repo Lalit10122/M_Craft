@@ -10,13 +10,16 @@ import RevealCard from '../common/RevealCard';
 
 const NewArrivals = ({ onQuickView }) => {
   const [newArrivals, setNewArrivals] = useState([]);
+  const [loading, setLoading] = useState(true);
   const carouselRef = useRef(null);
   const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
+    setLoading(true);
     api.get('/products?sort=newest&limit=8')
       .then(res => setNewArrivals(res.data.data.products || res.data.data))
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   const scrollCarousel = (dir) => {
@@ -66,28 +69,41 @@ const NewArrivals = ({ onQuickView }) => {
         </div>
       </div>
 
-      <RevealGrid 
-        ref={carouselRef}
-        style={{ 
-          display: 'flex', gap: 'var(--spacing-lg)', overflowX: 'auto', paddingBottom: 'var(--spacing-md)',
-          scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none'
-        }}
-        className="no-scrollbar"
-      >
-        {newArrivals.length === 0 ? (
-          [1, 2, 3, 4].map((i) => (
+      {loading ? (
+        <div 
+          style={{ 
+            display: 'flex', gap: 'var(--spacing-lg)', overflowX: 'auto', paddingBottom: 'var(--spacing-md)',
+            scrollbarWidth: 'none', msOverflowStyle: 'none'
+          }}
+          className="no-scrollbar"
+        >
+          {[1, 2, 3, 4].map((i) => (
             <div key={i} style={{ minWidth: '280px', flexShrink: 0 }}>
               <ProductCardSkeleton />
             </div>
-          ))
-        ) : (
-          newArrivals.map((product, index) => (
+          ))}
+        </div>
+      ) : newArrivals.length === 0 ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#666', background: '#fafafa', borderRadius: '8px' }}>
+          No new arrivals found.
+        </div>
+      ) : (
+        <RevealGrid 
+          key="new-arrivals-grid"
+          ref={carouselRef}
+          style={{ 
+            display: 'flex', gap: 'var(--spacing-lg)', overflowX: 'auto', paddingBottom: 'var(--spacing-md)',
+            scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none'
+          }}
+          className="no-scrollbar"
+        >
+          {newArrivals.map((product, index) => (
             <RevealCard key={product.id} index={index} style={{ minWidth: '280px', scrollSnapAlign: 'start', flexShrink: 0 }}>
               <ProductCard product={product} onQuickView={onQuickView} />
             </RevealCard>
-          ))
-        )}
-      </RevealGrid>
+          ))}
+        </RevealGrid>
+      )}
     </motion.div>
   );
 };
