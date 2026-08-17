@@ -4,6 +4,7 @@ import ProductCard from '../../components/product/ProductCard';
 import { AnimatePresence } from 'framer-motion';
 import RevealGrid from '../../components/common/RevealGrid';
 import RevealCard from '../../components/common/RevealCard';
+import ProductCardSkeleton from '../../components/product/ProductCardSkeleton';
 
 const Collections = () => {
   const [collections, setCollections] = useState([]);
@@ -56,8 +57,24 @@ const Collections = () => {
 
   if (loadingCollections) {
     return (
-      <div className="container" style={{ padding: '40px 20px', textAlign: 'center' }}>
-        <div>Loading collections...</div>
+      <div className="container" style={{ padding: '24px 16px' }}>
+        <h1 style={{ fontSize: '2rem', marginBottom: '24px', textAlign: 'center', fontWeight: 700, color: 'transparent', background: '#e0e0e0', width: '250px', margin: '0 auto 24px', borderRadius: '4px' }}>
+          Loading
+        </h1>
+        
+        {/* Fake tabs */}
+        <div style={styles.tabsContainer}>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} style={{ width: '120px', height: '42px', background: '#e0e0e0', borderRadius: '30px' }} />
+          ))}
+        </div>
+
+        {/* Fake grid */}
+        <div className="responsive-grid" style={{ marginTop: '24px' }}>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -127,8 +144,10 @@ const Collections = () => {
 
           {/* Products Grid */}
           {loadingProducts ? (
-            <div style={{ padding: '60px 0', textAlign: 'center', color: '#666' }}>
-              Loading products in {selectedCollection === 'ALL' ? 'All Products' : selectedCollection?.name}...
+            <div className="responsive-grid" style={{ marginTop: '24px' }}>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
             </div>
           ) : products.length === 0 ? (
             <div style={styles.emptyBox}>
