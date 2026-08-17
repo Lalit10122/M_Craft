@@ -7,7 +7,7 @@ import RevealCard from '../../components/common/RevealCard';
 
 const Collections = () => {
   const [collections, setCollections] = useState([]);
-  const [selectedCollection, setSelectedCollection] = useState(null);
+  const [selectedCollection, setSelectedCollection] = useState('ALL');
   const [products, setProducts] = useState([]);
   const [loadingCollections, setLoadingCollections] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(false);
@@ -18,11 +18,7 @@ const Collections = () => {
     const fetchCollections = async () => {
       try {
         const res = await api.get('/collections');
-        const list = res.data.data || [];
-        setCollections(list);
-        if (list.length > 0) {
-          setSelectedCollection(list[0]);
-        }
+        setCollections(res.data.data || []);
       } catch (err) {
         console.error(err);
         setError('Failed to load collections.');
@@ -40,7 +36,13 @@ const Collections = () => {
     const fetchCollectionProducts = async () => {
       setLoadingProducts(true);
       try {
-        const res = await api.get(`/collections/${selectedCollection.slug}`);
+        const url = selectedCollection === 'ALL' 
+          ? '/products?limit=24' 
+          : `/collections/${selectedCollection.slug}`;
+        
+        const res = await api.get(url);
+        // /products returns { data: { products: [...] } }
+        // /collections/:slug returns { data: { products: [...] } }
         setProducts(res.data.data.products || []);
       } catch (err) {
         console.error(err);
@@ -82,6 +84,19 @@ const Collections = () => {
       ) : (
         <>
           <div style={styles.tabsContainer}>
+            {/* "All Products" Tab */}
+            <button
+              onClick={() => setSelectedCollection('ALL')}
+              style={{
+                ...styles.tabButton,
+                backgroundColor: selectedCollection === 'ALL' ? 'var(--color-primary, #111)' : 'transparent',
+                color: selectedCollection === 'ALL' ? '#fff' : 'var(--color-text, #333)',
+                borderColor: selectedCollection === 'ALL' ? 'var(--color-primary, #111)' : '#ddd',
+              }}
+            >
+              All Products
+            </button>
+
             {collections.map((col) => {
               const isSelected = selectedCollection?.id === col.id;
               return (
@@ -102,7 +117,7 @@ const Collections = () => {
           </div>
 
           {/* Description of current collection */}
-          {selectedCollection?.description && (
+          {selectedCollection && selectedCollection !== 'ALL' && selectedCollection.description && (
             <div style={styles.descriptionBox}>
               <p style={{ margin: 0, color: '#555', fontSize: '0.95rem', lineHeight: 1.5 }}>
                 {selectedCollection.description}
@@ -113,18 +128,18 @@ const Collections = () => {
           {/* Products Grid */}
           {loadingProducts ? (
             <div style={{ padding: '60px 0', textAlign: 'center', color: '#666' }}>
-              Loading products in {selectedCollection?.name}...
+              Loading products in {selectedCollection === 'ALL' ? 'All Products' : selectedCollection?.name}...
             </div>
           ) : products.length === 0 ? (
             <div style={styles.emptyBox}>
               <h3 style={{ margin: '0 0 8px 0' }}>No Products Found</h3>
               <p style={{ margin: 0, color: '#888' }}>
-                There are currently no products in the {selectedCollection?.name} collection.
+                There are currently no products in {selectedCollection === 'ALL' ? 'our catalog' : `the ${selectedCollection?.name} collection`}.
               </p>
             </div>
           ) : (
             <AnimatePresence mode="wait">
-              <RevealGrid key={selectedCollection?.id || 'empty'} className="responsive-grid" style={{ marginTop: '24px' }}>
+              <RevealGrid key={selectedCollection === 'ALL' ? 'all' : selectedCollection?.id || 'empty'} className="responsive-grid" style={{ marginTop: '24px' }}>
                 {products.map((product, index) => (
                   <RevealCard key={product.id} index={index}>
                     <ProductCard product={product} />

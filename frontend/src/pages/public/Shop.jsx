@@ -56,13 +56,14 @@ const Shop = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Reset pagination when search query or category changes
+  // Reset pagination when search query, category, or sort changes
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     setProducts([]);
-  }, [query, categorySlug]);
+  }, [query, categorySlug, searchParams.get('sort')]);
 
   // Fetch Categories for the filter sidebar
   useEffect(() => {
@@ -94,6 +95,7 @@ const Shop = () => {
         let url = `/products?page=${page}`;
         if (query) url += `&q=${encodeURIComponent(query)}`;
         if (categorySlug) url += `&category=${encodeURIComponent(categorySlug)}`;
+        if (searchParams.get('sort')) url += `&sort=${encodeURIComponent(searchParams.get('sort'))}`;
         
         const res = await api.get(url);
         const fetchedProducts = res.data.data.products;
@@ -109,15 +111,17 @@ const Shop = () => {
         }
         
         setHasMore(fetchedProducts.length >= 12);
+        setError(null);
       } catch (err) {
         console.error(err);
+        setError('Failed to load products. Please try again.');
       } finally {
         setLoading(false);
         setLoadingMore(false);
       }
     };
     fetchProducts();
-  }, [query, categorySlug, page]);
+  }, [query, categorySlug, page, searchParams.get('sort')]);
 
   const filterDesc = categorySlug ? `${categorySlug.replace('-', ' ')}` : query ? `results for "${query}"` : 'all collections';
 
@@ -130,20 +134,61 @@ const Shop = () => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--spacing-xl)', paddingBottom: 'var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
         <div>
+          {/* Breadcrumbs */}
+          <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: 'var(--spacing-md)', display: 'flex', gap: '8px', alignItems: 'center', fontWeight: 500 }}>
+            <span style={{ cursor: 'pointer', transition: 'color 0.2s ease' }} onClick={() => navigate('/')} onMouseEnter={(e) => e.target.style.color = '#111'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>Home</span>
+            <span>/</span>
+            <span style={{ cursor: 'pointer', color: !categorySlug && !query ? '#111' : 'var(--color-text-muted)', transition: 'color 0.2s ease' }} onClick={() => setSearchParams({})} onMouseEnter={(e) => e.target.style.color = '#111'} onMouseLeave={(e) => e.target.style.color = !categorySlug && !query ? '#111' : 'var(--color-text-muted)'}>Collections</span>
+            {(categorySlug || query) && (
+              <>
+                <span>/</span>
+                <span style={{ color: '#111' }}>
+                  {query ? 'Search Results' : categories.find(c => c.slug === categorySlug)?.name || 'Collection'}
+                </span>
+              </>
+            )}
+          </div>
+          
           <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 400 }}>
             {query ? `Search Results for "${query}"` : (categorySlug ? categories.find(c => c.slug === categorySlug)?.name || 'Collection' : 'The Collection')}
           </h1>
           <p style={{ color: 'var(--color-text-muted)', marginTop: '8px' }}>Explore our handcrafted pieces designed for the modern wardrobe.</p>
         </div>
         
-        {/* Mobile Filter Toggle */}
-        <button 
-          className="btn btn-outline show-mobile-flex" 
-          style={{ display: 'none', alignItems: 'center', gap: '8px', padding: '8px 16px' }}
-          onClick={() => setShowMobileFilters(true)}
-        >
-          <SlidersHorizontal size={18} /> Filters
-        </button>
+        {/* Sort and Mobile Filters */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }} className="hide-mobile">
+            <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+              {products.length} {products.length === 1 ? 'Product' : 'Products'}
+            </span>
+            <select 
+              className="select-input" 
+              style={{ padding: '8px 16px', border: '1px solid var(--color-border)', borderRadius: '4px', background: 'transparent', fontSize: '0.9rem', fontWeight: 500, cursor: 'pointer', outline: 'none' }}
+              value={searchParams.get('sort') || 'featured'}
+              onChange={(e) => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('sort', e.target.value);
+                setSearchParams(newParams);
+              }}
+            >
+              <option value="featured">Sort by: Featured</option>
+              <option value="newest">Sort by: Newest</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="rating">Best Rated</option>
+              <option value="discount">Biggest Discount</option>
+            </select>
+          </div>
+          
+          {/* Mobile Filter Toggle */}
+          <button 
+            className="btn btn-outline show-mobile-flex" 
+            style={{ display: 'none', alignItems: 'center', gap: '8px', padding: '8px 16px' }}
+            onClick={() => setShowMobileFilters(true)}
+          >
+            <SlidersHorizontal size={18} /> Filters
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 'var(--spacing-xxl)' }}>
@@ -182,11 +227,35 @@ const Shop = () => {
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="price" style={{ accentColor: 'var(--color-primary)' }} /> ₹1000 - ₹5000</label>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="price" style={{ accentColor: 'var(--color-primary)' }} /> Over ₹5000</label>
           </FilterAccordion>
+          <FilterAccordion title="Availability" defaultOpen={false}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="checkbox" style={{ accentColor: 'var(--color-primary)' }} /> In Stock</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="checkbox" style={{ accentColor: 'var(--color-primary)' }} /> Out of Stock</label>
+          </FilterAccordion>
+
+          <FilterAccordion title="Rating" defaultOpen={false}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="rating" style={{ accentColor: 'var(--color-primary)' }} /> 4+ Stars</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="rating" style={{ accentColor: 'var(--color-primary)' }} /> 3+ Stars</label>
+          </FilterAccordion>
+
+          <FilterAccordion title="Discount" defaultOpen={false}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="discount" style={{ accentColor: 'var(--color-primary)' }} /> 50% or more</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="discount" style={{ accentColor: 'var(--color-primary)' }} /> 30% or more</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="discount" style={{ accentColor: 'var(--color-primary)' }} /> 20% or more</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="discount" style={{ accentColor: 'var(--color-primary)' }} /> 10% or more</label>
+          </FilterAccordion>
         </aside>
 
         {/* Product Grid Area */}
         <main style={{ flex: 1 }}>
-          {loading ? (
+          {error ? (
+            <div style={{ padding: 'var(--spacing-xxl)', textAlign: 'center', background: 'white', borderRadius: '2px', border: '1px solid var(--color-border)' }}>
+              <h3>Oops, something went wrong</h3>
+              <p style={{ color: 'var(--color-text-muted)', margin: 'var(--spacing-md) 0' }}>
+                {error}
+              </p>
+              <button onClick={() => setPage(page)} className="btn btn-primary">Retry</button>
+            </div>
+          ) : loading ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-xl)' }}>
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <ProductCardSkeleton key={i} />
@@ -285,6 +354,29 @@ const Shop = () => {
                     ))}
                   </FilterAccordion>
                 ))}
+
+                <FilterAccordion title="Availability" defaultOpen={false}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="checkbox" style={{ accentColor: 'var(--color-primary)' }} /> In Stock</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="checkbox" style={{ accentColor: 'var(--color-primary)' }} /> Out of Stock</label>
+                </FilterAccordion>
+
+                <FilterAccordion title="Price Range" defaultOpen={false}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="mobile_price" style={{ accentColor: 'var(--color-primary)' }} /> Under ₹1000</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="mobile_price" style={{ accentColor: 'var(--color-primary)' }} /> ₹1000 - ₹5000</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="mobile_price" style={{ accentColor: 'var(--color-primary)' }} /> Over ₹5000</label>
+                </FilterAccordion>
+
+                <FilterAccordion title="Rating" defaultOpen={false}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="mobile_rating" style={{ accentColor: 'var(--color-primary)' }} /> 4+ Stars</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="mobile_rating" style={{ accentColor: 'var(--color-primary)' }} /> 3+ Stars</label>
+                </FilterAccordion>
+
+                <FilterAccordion title="Discount" defaultOpen={false}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="mobile_discount" style={{ accentColor: 'var(--color-primary)' }} /> 50% or more</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="mobile_discount" style={{ accentColor: 'var(--color-primary)' }} /> 30% or more</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="mobile_discount" style={{ accentColor: 'var(--color-primary)' }} /> 20% or more</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="radio" name="mobile_discount" style={{ accentColor: 'var(--color-primary)' }} /> 10% or more</label>
+                </FilterAccordion>
               </div>
               <button className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--spacing-xl)', padding: '16px' }} onClick={() => setShowMobileFilters(false)}>
                 View Results
