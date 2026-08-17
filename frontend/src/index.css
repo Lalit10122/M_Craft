@@ -2,8 +2,8 @@
 
 :root {
   /* Premium Earthy Colors */
-  --color-primary: #9c4f36; /* Terracotta / Earthy Brown */
-  --color-primary-hover: #7d3f2b;
+  --color-primary: #000000; /* Black */
+  --color-primary-hover: #222222;
   --color-secondary: #6b7a62; /* Muted Green */
   --color-secondary-hover: #525d4b;
   --color-background: #fdfbf7; /* Warm Ivory */

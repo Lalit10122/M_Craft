@@ -25,7 +25,7 @@ const ProcessStep = ({ step, index, progress }) => {
   const threshold = index / (processSteps.length - 1);
   const isActive = useTransform(progress, [threshold - 0.15, threshold], [0, 1]);
   const opacity = useTransform(isActive, [0, 1], [0.4, 1]);
-  const color = useTransform(isActive, [0, 1], ['#cccccc', '#9c4f36']); // Terracotta active
+  const color = useTransform(isActive, [0, 1], ['#cccccc', '#000000']); // Black active
 
   return (
     <motion.div style={{ display: 'flex', gap: '2rem', marginBottom: '4rem', opacity }}>
