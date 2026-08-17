@@ -28,6 +28,7 @@
   flex-direction: column;
   padding: 16px 0;
   overflow-y: auto;
+  flex: 1;
 }
 
 .navItem {
@@ -93,7 +94,7 @@
     transform: translateX(-100%);
   }
   
-  .sidebar.mobile-open {
-    transform: translateX(0);
+  .sidebar:global(.mobile-open) {
+    transform: translateX(0) !important;
   }
 }

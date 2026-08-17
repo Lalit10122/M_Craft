@@ -1,6 +1,7 @@
 import React from 'react';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
+import styles from './AdminLayout.module.css';
 
 const AdminLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -19,7 +20,7 @@ const AdminLayout = ({ children }) => {
       <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: '100%' }}>
         <AdminHeader toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main style={{ padding: 'var(--spacing-lg)', flex: 1, overflowY: 'auto' }}>
+        <main className={styles.adminMain}>
           <React.Suspense fallback={<div style={{ textAlign: 'center', padding: '32px' }}>Loading Admin Panel...</div>}>
             {children}
           </React.Suspense>
