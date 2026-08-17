@@ -5,7 +5,7 @@ const ProductCardSkeleton = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
       {/* Image Skeleton */}
-      <div style={{ aspectRatio: '3/4', width: '100%', borderRadius: '4px', overflow: 'hidden' }}>
+      <div style={{ height: '300px', width: '100%', borderRadius: '4px', overflow: 'hidden' }}>
         <Skeleton width="100%" height="100%" />
       </div>
       

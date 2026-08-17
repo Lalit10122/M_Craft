@@ -74,7 +74,7 @@ const ProductCard = ({ product, square = false, onQuickView }) => {
           onError={(e) => { e.target.onerror = null; e.target.src = placeholderImg; }}
           alt={product.name || 'Aurelia Jewelry'} 
           className="product-image"
-          style={{ aspectRatio: '1/1', objectFit: 'contain', width: '100%', background: '#fafafa' }}
+          style={{ height: square ? 'auto' : '300px', aspectRatio: square ? '1/1' : 'auto', objectFit: 'cover', width: '100%', background: '#fafafa' }}
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.3 }}
           loading="lazy"
