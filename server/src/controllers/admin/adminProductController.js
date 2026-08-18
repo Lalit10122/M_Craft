@@ -126,11 +126,10 @@ export const bulkDeleteProducts = async (req, res, next) => {
             return errorResponse(res, { message: 'No products selected for deletion', statusCode: 400 });
         }
 
-        // Before deleting products, we might need to delete related data if Prisma doesn't cascade
-        // Assuming Prisma is set up to cascade, we can just delete. 
-        // If it throws Foreign Key errors, we can update it later. Prisma typically has onDelete: Cascade for relations.
-        await prisma.product.deleteMany({
-            where: { id: { in: productIds } }
+        // Soft-delete products to preserve order history and foreign key constraints
+        await prisma.product.updateMany({
+            where: { id: { in: productIds } },
+            data: { isActive: false }
         });
 
         await prisma.auditLog.create({
