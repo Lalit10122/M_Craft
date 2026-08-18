@@ -323,3 +323,36 @@ img {
     display: none !important;
   }
 }
+
+/* --- Admin Panel Global Mobile Layout Fixes --- */
+.admin-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.admin-stat-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border: 1px solid #eaeaea;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .admin-header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .admin-stat-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+

@@ -62,7 +62,7 @@ const Collections = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="admin-header-row">
         <div>
           <h1 style={{ fontSize: '1.8rem', margin: '0 0 8px 0' }}>Collections</h1>
           <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>Used in the site's navigation menu and product filters.</p>

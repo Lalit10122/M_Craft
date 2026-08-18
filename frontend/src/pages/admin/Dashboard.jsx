@@ -47,7 +47,7 @@ const Dashboard = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="admin-header-row">
         <h1 style={{ margin: 0, fontSize: '1.8rem' }}>Dashboard Overview</h1>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
@@ -150,7 +150,7 @@ const Dashboard = () => {
 
         {/* Low Stock Preview */}
         <div className="glass-panel" style={{ padding: '24px', background: 'white', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div className="admin-header-row">
             <h3 style={{ margin: 0 }}>Low Stock Preview</h3>
             <Link to="/admin/low-stock" style={{ color: 'var(--color-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>View All</Link>
           </div>
@@ -174,7 +174,7 @@ const Dashboard = () => {
 };
 
 const StatCard = ({ title, value, icon, color, loading }) => (
-  <div style={{ background: 'white', padding: '24px', borderRadius: '12px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', border: '1px solid #eaeaea', opacity: loading ? 0.6 : 1, transition: 'opacity 0.2s' }}>
+  <div className="admin-stat-card">
     <div>
       <p style={{ color: '#666', fontSize: '0.9rem', margin: '0 0 8px 0' }}>{title}</p>
       <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#111' }}>{loading ? '...' : value}</h2>

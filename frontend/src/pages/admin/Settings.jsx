@@ -88,7 +88,7 @@ const Settings = () => {
             </div>
 
             {JSON.parse(settings.global_banner_config).isActive && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', background: '#f9f9f9', padding: '16px', borderRadius: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', background: '#f9f9f9', padding: '16px', borderRadius: '8px' }}>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={styles.label}>Banner Text</label>
                   <input 

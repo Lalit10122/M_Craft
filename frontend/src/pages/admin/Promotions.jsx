@@ -55,7 +55,7 @@ const Promotions = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="admin-header-row">
         <h1 style={{ fontSize: '1.8rem', margin: 0 }}>Promotions</h1>
         <button onClick={() => { setEditingId(null); setShowForm(true); }} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Plus size={18} /> Add Promotion

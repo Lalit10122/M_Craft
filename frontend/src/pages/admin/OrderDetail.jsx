@@ -69,7 +69,7 @@ const OrderDetail = () => {
           
           {/* Timeline */}
           <div style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #eaeaea' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div className="admin-header-row">
               <h3 style={{ margin: 0 }}>Order Status</h3>
               <select 
                 value={order.status}

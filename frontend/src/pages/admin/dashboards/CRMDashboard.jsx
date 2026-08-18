@@ -72,7 +72,7 @@ const CRMDashboard = () => {
 
         {/* Top Spenders / VIPs */}
         <div className="glass-panel" style={{ padding: '24px', background: 'white' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div className="admin-header-row">
             <h3 style={{ margin: 0 }}>Top Spenders (VIPs)</h3>
           </div>
           
@@ -112,7 +112,7 @@ const CRMDashboard = () => {
 };
 
 const StatCard = ({ title, value, icon, color }) => (
-  <div style={{ background: 'white', padding: '24px', borderRadius: '12px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', border: '1px solid #eaeaea' }}>
+  <div className="admin-stat-card">
     <div>
       <p style={{ color: '#666', fontSize: '0.9rem', margin: '0 0 8px 0' }}>{title}</p>
       <h2 style={{ margin: 0, fontSize: '1.6rem', color: '#111' }}>{value}</h2>

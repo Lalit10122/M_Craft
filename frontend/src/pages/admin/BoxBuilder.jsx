@@ -114,7 +114,7 @@ const BoxBuilder = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="admin-header-row">
         <h1 style={{ fontSize: '1.8rem', margin: 0 }}>Box Builders</h1>
         <button onClick={() => { resetForm(); setShowModal(true); }} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Plus size={18} /> Create Box Builder

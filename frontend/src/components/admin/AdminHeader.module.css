@@ -87,3 +87,15 @@
   background: #f5f5f5;
   color: #000;
 }
+
+/* Mobile Adjustments */
+@media (max-width: 640px) {
+  .header {
+    padding: 0 16px;
+    height: 60px;
+  }
+  
+  .userInfo {
+    display: none;
+  }
+}

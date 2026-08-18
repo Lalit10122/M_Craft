@@ -78,7 +78,7 @@ const SupplyChainDashboard = () => {
 };
 
 const StatCard = ({ title, value, icon, color }) => (
-  <div style={{ background: 'white', padding: '24px', borderRadius: '12px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', border: '1px solid #eaeaea' }}>
+  <div className="admin-stat-card">
     <div>
       <p style={{ color: '#666', fontSize: '0.9rem', margin: '0 0 8px 0' }}>{title}</p>
       <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#111' }}>{value}</h2>

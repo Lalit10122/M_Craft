@@ -118,7 +118,7 @@ const ThemeCustomizer = () => {
       
       {/* Editor Panel */}
       <div className="surface-card" style={{ flex: 1, padding: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="admin-header-row">
           <h2 style={{ margin: 0 }}>Appearance Settings</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button className="btn btn-outline" onClick={handleReset} disabled={saving}>
