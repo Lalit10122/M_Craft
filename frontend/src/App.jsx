@@ -77,16 +77,9 @@ const CRMDashboard = React.lazy(() => import('./pages/admin/dashboards/CRMDashbo
 // Layout wrapper for customer facing pages
 const StoreLayout = ({ children }) => {
   const { user } = useAuthStore();
-  const showVerificationBanner = user && user.authProvider === 'LOCAL' && !user.emailVerified;
 
   return (
     <div className="store-layout">
-      {showVerificationBanner && (
-        <div style={{ background: '#fef3c7', color: '#92400e', padding: '10px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-          <span>Please verify your email address to unlock checkout.</span>
-          <Link to="/verify-email" style={{ color: '#92400e', textDecoration: 'underline', fontWeight: 600 }}>Verify Now</Link>
-        </div>
-      )}
       <Header />
       <CartDrawer />
       <main className="main-content" style={{ minHeight: 'calc(100vh - 200px)', padding: 'var(--spacing-xl) 0', overflow: 'hidden' }}>
