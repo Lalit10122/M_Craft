@@ -44,9 +44,11 @@ const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q');
   const categorySlug = searchParams.get('category');
+  const collectionSlug = searchParams.get('collection');
   
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [collections, setCollections] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
@@ -58,17 +60,21 @@ const Shop = () => {
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
 
-  // Reset pagination when search query, category, or sort changes
+  // Reset pagination when search query, category, collection, or sort changes
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     setProducts([]);
-  }, [query, categorySlug, searchParams.get('sort')]);
+  }, [query, categorySlug, collectionSlug, searchParams.get('sort')]);
 
   // Fetch Categories for the filter sidebar
   useEffect(() => {
     api.get('/categories')
        .then(res => setCategories(res.data?.data || []))
+       .catch(err => console.error(err));
+       
+    api.get('/collections')
+       .then(res => setCollections(res.data?.data || []))
        .catch(err => console.error(err));
   }, []);
 
@@ -95,6 +101,7 @@ const Shop = () => {
         let url = `/products?page=${page}`;
         if (query) url += `&q=${encodeURIComponent(query)}`;
         if (categorySlug) url += `&category=${encodeURIComponent(categorySlug)}`;
+        if (collectionSlug) url += `&collection=${encodeURIComponent(collectionSlug)}`;
         if (searchParams.get('sort')) url += `&sort=${encodeURIComponent(searchParams.get('sort'))}`;
         
         const res = await api.get(url);
@@ -121,9 +128,9 @@ const Shop = () => {
       }
     };
     fetchProducts();
-  }, [query, categorySlug, page, searchParams.get('sort')]);
+  }, [query, categorySlug, collectionSlug, page, searchParams.get('sort')]);
 
-  const filterDesc = categorySlug ? `${categorySlug.replace('-', ' ')}` : query ? `results for "${query}"` : 'all collections';
+  const filterDesc = collectionSlug ? `${collectionSlug.replace('-', ' ')}` : categorySlug ? `${categorySlug.replace('-', ' ')}` : query ? `results for "${query}"` : 'all products';
 
   return (
     <div className="container" style={{ paddingBottom: 'var(--spacing-3xl)' }}>
@@ -138,19 +145,19 @@ const Shop = () => {
           <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: 'var(--spacing-md)', display: 'flex', gap: '8px', alignItems: 'center', fontWeight: 500 }}>
             <span style={{ cursor: 'pointer', transition: 'color 0.2s ease' }} onClick={() => navigate('/')} onMouseEnter={(e) => e.target.style.color = '#111'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>Home</span>
             <span>/</span>
-            <span style={{ cursor: 'pointer', color: !categorySlug && !query ? '#111' : 'var(--color-text-muted)', transition: 'color 0.2s ease' }} onClick={() => setSearchParams({})} onMouseEnter={(e) => e.target.style.color = '#111'} onMouseLeave={(e) => e.target.style.color = !categorySlug && !query ? '#111' : 'var(--color-text-muted)'}>Collections</span>
-            {(categorySlug || query) && (
+            <span style={{ cursor: 'pointer', color: !categorySlug && !collectionSlug && !query ? '#111' : 'var(--color-text-muted)', transition: 'color 0.2s ease' }} onClick={() => setSearchParams({})} onMouseEnter={(e) => e.target.style.color = '#111'} onMouseLeave={(e) => e.target.style.color = !categorySlug && !collectionSlug && !query ? '#111' : 'var(--color-text-muted)'}>Shop</span>
+            {(categorySlug || collectionSlug || query) && (
               <>
                 <span>/</span>
                 <span style={{ color: '#111' }}>
-                  {query ? 'Search Results' : categories.find(c => c.slug === categorySlug)?.name || 'Collection'}
+                  {query ? 'Search Results' : collectionSlug ? collections.find(c => c.slug === collectionSlug)?.name || 'Collection' : categories.find(c => c.slug === categorySlug)?.name || 'Category'}
                 </span>
               </>
             )}
           </div>
           
           <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 400 }}>
-            {query ? `Search Results for "${query}"` : (categorySlug ? categories.find(c => c.slug === categorySlug)?.name || 'Collection' : 'The Collection')}
+            {query ? `Search Results for "${query}"` : (collectionSlug ? collections.find(c => c.slug === collectionSlug)?.name || 'Collection' : categorySlug ? categories.find(c => c.slug === categorySlug)?.name || 'Category' : 'All Products')}
           </h1>
           <p style={{ color: 'var(--color-text-muted)', marginTop: '8px' }}>Explore our handcrafted pieces designed for the modern wardrobe.</p>
         </div>
@@ -195,21 +202,41 @@ const Shop = () => {
         {/* Desktop Sidebar Filters */}
         <aside style={{ width: '250px', flexShrink: 0 }} className="hide-mobile">
           <FilterAccordion title="Categories" defaultOpen={true}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: !categorySlug ? 'var(--color-primary)' : '#555' }} onClick={() => setSearchParams({})}>
-              All Collections
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: (!categorySlug && !collectionSlug) ? 'var(--color-primary)' : '#555' }} onClick={() => setSearchParams({})}>
+              All Products
             </label>
             {categories.filter(c => !c.parentId).map(parent => (
               <div key={parent.id} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
                 <strong style={{ fontSize: '0.95rem', color: '#111' }}>{parent.name}</strong>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
                   {categories.filter(c => c.parentId === parent.id).map(child => (
-                    <label key={child.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: categorySlug === child.slug ? 'var(--color-primary)' : '#555' }} onClick={() => setSearchParams({ category: child.slug })}>
+                    <label key={child.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: categorySlug === child.slug ? 'var(--color-primary)' : '#555' }} onClick={() => {
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.delete('collection');
+                        newParams.set('category', child.slug);
+                        setSearchParams(newParams);
+                    }}>
                       {child.name}
                     </label>
                   ))}
                 </div>
               </div>
             ))}
+          </FilterAccordion>
+
+          <FilterAccordion title="Collections" defaultOpen={true}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {collections.map(col => (
+                <label key={col.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: collectionSlug === col.slug ? 'var(--color-primary)' : '#555' }} onClick={() => {
+                    const newParams = new URLSearchParams(searchParams);
+                    newParams.delete('category');
+                    newParams.set('collection', col.slug);
+                    setSearchParams(newParams);
+                }}>
+                  {col.name}
+                </label>
+              ))}
+            </div>
           </FilterAccordion>
 
           {categoryAttributes.map(attr => (
