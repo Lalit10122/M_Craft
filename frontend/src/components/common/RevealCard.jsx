@@ -14,7 +14,8 @@ const RevealCard = ({ children, index = 0, className = '', style = {} }) => {
       y: 0,
       transition: { 
         duration: 0.8, /* Slower and gentler */
-        ease: [0.33, 1, 0.68, 1] 
+        ease: [0.33, 1, 0.68, 1],
+        delay: shouldReduceMotion ? 0 : (index % 12) * 0.08 // Modulo 12 for staggered batches
       }
     }
   };
@@ -22,6 +23,9 @@ const RevealCard = ({ children, index = 0, className = '', style = {} }) => {
   return (
     <motion.div
       variants={cardVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "100px" }}
       className={className}
       style={{ ...style, willChange: 'transform, opacity, filter' }}
     >

@@ -20,15 +20,10 @@ const RevealGrid = React.forwardRef(({ children, className = '', style = {} }, r
   };
 
   return (
-    <motion.div
+    <div
       ref={ref}
       className={className}
       style={style}
-      variants={containerVariants}
-      initial="hidden"
-      whileInView="visible"
-      exit="exit"
-      viewport={{ once: true, margin: "-50px" }}
     >
       {React.Children.map(children, (child, index) => {
         if (React.isValidElement(child)) {
