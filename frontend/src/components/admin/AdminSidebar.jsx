@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, Grid, ShoppingBag, 
   RefreshCcw, Users, Tag, MessageSquare, 
   MapPin, AlertTriangle, Settings, X,
-  DollarSign, Megaphone, Truck, Heart, Palette
+  DollarSign, Megaphone, Truck, Heart, Palette, Layers
 } from 'lucide-react';
 import styles from './AdminSidebar.module.css';
 
@@ -36,6 +36,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Supply Chain', path: '/admin/analytics/supply-chain', icon: <Truck size={18} /> },
     { name: 'CRM Insights', path: '/admin/analytics/crm', icon: <Heart size={18} /> },
     { name: 'Products', path: '/admin/products', icon: <Package size={18} />, badge: badges.lowStock, badgeColor: 'error' },
+    { name: 'Categories', path: '/admin/categories', icon: <Layers size={18} /> },
     { name: 'Collections', path: '/admin/collections', icon: <Grid size={18} /> },
     { name: 'Orders', path: '/admin/orders', icon: <ShoppingBag size={18} /> },
     { name: 'Returns', path: '/admin/returns', icon: <RefreshCcw size={18} />, badge: badges.pendingReturns, badgeColor: 'warning' },

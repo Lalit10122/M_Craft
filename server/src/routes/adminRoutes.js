@@ -57,6 +57,10 @@ import {
     getAdminTheme, updateTheme, resetTheme, uploadLogo
 } from '../controllers/admin/themeController.js';
 
+import {
+    createCategory, updateCategory, deleteCategory
+} from '../controllers/admin/adminCategoryController.js';
+
 const router = Router();
 
 // Apply auth and admin check to all routes
@@ -85,6 +89,11 @@ router.post('/collections', createCollection);
 router.put('/collections/:id', updateCollection);
 router.delete('/collections/:id', deleteCollection);
 router.post('/collections/:id/products', addProductsToCollection);
+
+// Categories
+router.post('/categories', createCategory);
+router.put('/categories/:id', updateCategory);
+router.delete('/categories/:id', deleteCategory);
 
 // Pincodes
 router.get('/pincodes', getPincodes);
