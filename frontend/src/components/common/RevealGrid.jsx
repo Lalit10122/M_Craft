@@ -31,7 +31,7 @@ const RevealGrid = React.forwardRef(({ children, className = '', style = {} }, r
         }
         return child;
       })}
-    </motion.div>
+    </div>
   );
 });
 
