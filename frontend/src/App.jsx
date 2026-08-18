@@ -10,6 +10,7 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageTransition from './components/layout/PageTransition';
 import AnnouncementBar from './components/layout/AnnouncementBar';
+import ScrollToTop from './components/common/ScrollToTop';
 
 import CustomerLayout from './components/customer/CustomerLayout';
 import CartDrawer from './components/checkout/CartDrawer';
@@ -209,6 +210,7 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <Router>
+        <ScrollToTop />
         <ToastProvider>
           <AnimatedRoutes />
         </ToastProvider>
