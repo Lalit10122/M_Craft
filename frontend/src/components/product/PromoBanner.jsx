@@ -41,14 +41,15 @@ const PromoBanner = () => {
     <div style={{
       background: 'linear-gradient(90deg, var(--color-primary), #333)',
       color: 'white',
-      height: '40px',
+      minHeight: '40px',
+      padding: '12px 30px 12px 15px',
       position: 'relative',
       textAlign: 'center',
       zIndex: 100,
-      overflow: 'hidden',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      borderRadius: '8px'
     }}>
       <AnimatePresence mode="wait">
         <motion.div
@@ -57,7 +58,7 @@ const PromoBanner = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.3 }}
-          style={{ cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', position: 'absolute', width: '90%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+          style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '8px', width: '100%', fontSize: '0.9rem' }}
           onClick={() => {
             if (currentPromo.scope === 'SPECIFIC_PRODUCTS' || currentPromo.scope === 'CATEGORY' || currentPromo.scope === 'COLLECTION') {
               navigate(`/campaign/${currentPromo.id}`);
@@ -67,7 +68,6 @@ const PromoBanner = () => {
           }}
         >
           <span style={{ fontWeight: 'bold' }}>{currentPromo.name}</span>
-          <span>—</span>
           <span>
             {currentPromo.type === 'PERCENTAGE_OFF' && `${currentPromo.value}% OFF`}
             {currentPromo.type === 'FLAT_OFF' && `₹${currentPromo.value} OFF`}
@@ -75,7 +75,7 @@ const PromoBanner = () => {
           </span>
           <button 
             className="btn btn-outline" 
-            style={{ padding: '2px 10px', fontSize: '0.8rem', borderColor: 'white', color: 'white', marginLeft: '10px' }}
+            style={{ padding: '2px 10px', fontSize: '0.8rem', borderColor: 'white', color: 'white', marginTop: '4px' }}
           >
             Shop Now
           </button>

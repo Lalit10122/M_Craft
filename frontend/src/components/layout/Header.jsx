@@ -84,10 +84,8 @@ const Header = () => {
 
   return (
     <>
-      <PromoBanner />
-      
       {/* Announcement Marquee */}
-      <div className={styles.marqueeContainer}>
+      <div className={`${styles.marqueeContainer} hide-mobile`}>
         <div className={styles.marqueeContent}>
           <span>FREE SUNGLASSES WORTH 949 ABOVE A PURCHASE OF RS 2000 ✦ FREE SHIPPING ON ALL PREPAID ORDERS ✦ NEW DOPAMINE DRIP COLLECTION OUT NOW</span>
           <span>FREE SUNGLASSES WORTH 949 ABOVE A PURCHASE OF RS 2000 ✦ FREE SHIPPING ON ALL PREPAID ORDERS ✦ NEW DOPAMINE DRIP COLLECTION OUT NOW</span>
@@ -298,6 +296,11 @@ const Header = () => {
                 <button className={styles.iconBtn} onClick={() => setIsMobileMenuOpen(false)}>
                   <X size={24} />
                 </button>
+              </div>
+
+              {/* Promotional Slider inside Drawer */}
+              <div style={{ marginBottom: 'var(--spacing-lg)', borderRadius: '8px', overflow: 'hidden' }}>
+                <PromoBanner />
               </div>
 
               {/* Mobile Search */}
