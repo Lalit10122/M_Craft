@@ -88,10 +88,14 @@ export const bulkUploadProducts = async (req, res, next) => {
 
         const stream = Readable.from(req.file.buffer);
 
-        stream.pipe(csv())
+        stream.pipe(csv({ mapHeaders: ({ header }) => header.trim() }))
             .on('data', (data) => results.push(data))
             .on('end', async () => {
                 let successCount = 0;
+                if (results.length > 0 && Object.keys(results[0]).length === 1 && Object.keys(results[0])[0].includes('\t')) {
+                    return errorResponse(res, { message: 'It looks like you uploaded a Tab-Separated file instead of Comma-Separated. Please save your file as CSV (Comma Delimited) and try again.', statusCode: 400 });
+                }
+                
                 for (const row of results) {
                     try {
                         const {
@@ -102,8 +106,14 @@ export const bulkUploadProducts = async (req, res, next) => {
                             'Collection Slugs': collectionSlugsStr
                         } = row;
 
-                        if (!Name || !categorySlugsStr || !basePriceStr || !mrpStr) {
-                            errors.push(`Row with Name "${Name || 'Unknown'}" is missing required fields.`);
+                        const missing = [];
+                        if (!Name) missing.push('Name');
+                        if (!categorySlugsStr) missing.push('Category Slugs');
+                        if (!basePriceStr) missing.push('Base Price');
+                        if (!mrpStr) missing.push('MRP');
+
+                        if (missing.length > 0) {
+                            errors.push(`Row with Name "${Name || 'Unknown'}" is missing required fields: ${missing.join(', ')}.`);
                             continue;
                         }
 
