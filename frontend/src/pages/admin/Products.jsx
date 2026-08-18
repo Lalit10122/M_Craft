@@ -12,15 +12,28 @@ const Products = () => {
   const [uploadingBulk, setUploadingBulk] = useState(false);
   const navigate = useNavigate();
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 20;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1); // Reset to page 1 on search
+      fetchProducts();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [page]); 
 
   const fetchProducts = async () => {
     try {
-      // Use standard api (no /admin prefix for read unless defined, but the public endpoint returns all if no filter)
-      const res = await api.get('/products');
+      setLoading(true);
+      const res = await api.get(`/admin/products?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`);
       setProducts(res.data.data.products);
+      setTotalPages(res.data.data.pagination.pages);
     } catch (err) {
       console.error(err);
     } finally {
@@ -130,7 +143,7 @@ const Products = () => {
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '10px', color: '#888' }} />
             <input 
               type="text" 
-              placeholder="Search products..." 
+              placeholder="Search products locally..." 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{ width: '100%', padding: '10px 10px 10px 36px', border: '1px solid #ccc', borderRadius: '6px' }}
@@ -159,10 +172,10 @@ const Products = () => {
           <tbody>
             {loading ? (
               <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center' }}>Loading products...</td></tr>
-            ) : filteredProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#888' }}>No products found.</td></tr>
             ) : (
-              filteredProducts.map(product => (
+              products.map(product => (
                 <tr key={product.id} style={{ borderBottom: '1px solid #eaeaea' }}>
                   <td style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <img src={product.firstImage} alt={product.name} style={{ width: 48, height: 48, borderRadius: '6px', objectFit: 'cover' }} />
@@ -214,6 +227,30 @@ const Products = () => {
           </tbody>
         </table>
         </div>
+
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '24px' }}>
+            <button 
+              onClick={() => setPage(p => Math.max(1, p - 1))} 
+              disabled={page === 1}
+              className="btn btn-outline"
+              style={{ padding: '8px 16px' }}
+            >
+              Previous
+            </button>
+            <span style={{ fontWeight: 500, color: '#555' }}>
+              Page {page} of {totalPages}
+            </span>
+            <button 
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+              disabled={page === totalPages}
+              className="btn btn-outline"
+              style={{ padding: '8px 16px' }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       {showBulkModal && (

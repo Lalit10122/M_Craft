@@ -6,6 +6,48 @@ import { z } from 'zod';
 import csv from 'csv-parser';
 import { Readable } from 'stream';
 
+export const adminListProducts = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 20, search } = req.query;
+        const pageNumber = parseInt(page, 10);
+        const limitNumber = parseInt(limit, 10);
+        const skip = (pageNumber - 1) * limitNumber;
+
+        const where = {};
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+
+        const [products, total] = await Promise.all([
+            prisma.product.findMany({
+                where,
+                skip,
+                take: limitNumber,
+                orderBy: { createdAt: 'desc' },
+                include: { categories: { select: { name: true } } }
+            }),
+            prisma.product.count({ where })
+        ]);
+
+        return successResponse(res, {
+            data: {
+                products,
+                pagination: {
+                    total,
+                    page: pageNumber,
+                    limit: limitNumber,
+                    pages: Math.ceil(total / limitNumber)
+                }
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getProduct = async (req, res, next) => {
     try {
         const { id } = req.params;

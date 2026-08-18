@@ -4,7 +4,7 @@ import { authorizeAdmin } from '../middleware/adminMiddleware.js';
 import { upload } from '../middleware/uploadMiddleware.js';
 
 import {
-    createProduct, updateProduct, deleteProduct, getProduct,
+    createProduct, updateProduct, deleteProduct, getProduct, adminListProducts,
     uploadImages, deleteImage,
     addVariant, updateVariant, deleteVariant,
     addToCollection, removeFromCollection,
@@ -70,6 +70,7 @@ import multer from 'multer';
 const csvUpload = multer({ storage: multer.memoryStorage() });
 
 // Products
+router.get('/products', adminListProducts);
 router.post('/products/bulk', csvUpload.single('file'), bulkUploadProducts);
 router.get('/products/:id', getProduct);
 router.post('/products', createProduct);
