@@ -81,7 +81,6 @@ const StoreLayout = ({ children }) => {
 
   return (
     <div className="store-layout">
-      <AnnouncementBar />
       {showVerificationBanner && (
         <div style={{ background: '#fef3c7', color: '#92400e', padding: '10px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
           <span>Please verify your email address to unlock checkout.</span>
