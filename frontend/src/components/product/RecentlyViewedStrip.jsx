@@ -66,7 +66,7 @@ const RecentlyViewedStrip = ({ onQuickView }) => {
         className="no-scrollbar"
       >
         {items.map((product, index) => (
-          <RevealCard key={product.id} index={index} style={{ minWidth: '280px', scrollSnapAlign: 'start', flexShrink: 0 }}>
+          <RevealCard key={product.id} index={index} className="carousel-card" style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
             <ProductCard product={product} onQuickView={onQuickView} />
           </RevealCard>
         ))}

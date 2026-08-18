@@ -256,7 +256,7 @@ const Shop = () => {
               <button onClick={() => setPage(page)} className="btn btn-primary">Retry</button>
             </div>
           ) : loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-xl)' }}>
+            <div className="responsive-grid">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <ProductCardSkeleton key={i} />
               ))}
@@ -272,7 +272,7 @@ const Shop = () => {
           ) : (
             <>
               <AnimatePresence mode="wait">
-                <RevealGrid key={query || categorySlug || 'all'} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-xl)' }}>
+                <RevealGrid key={query || categorySlug || 'all'} className="responsive-grid">
                   {products.map((product, index) => (
                     <RevealCard key={product.id} index={index}>
                       <ProductCard 

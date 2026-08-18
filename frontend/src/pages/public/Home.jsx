@@ -137,7 +137,7 @@ const Home = () => {
                 <Link to={slides[currentSlide].link} className="btn btn-primary" style={{ padding: '16px 36px', fontSize: '1.05rem', background: 'white', color: 'black', border: 'none', fontWeight: 600, borderRadius: '4px', display: 'inline-block', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                   {slides[currentSlide].cta}
                 </Link>
-                <Link to="/about" className="btn btn-outline" style={{ padding: '16px 36px', fontSize: '1.05rem', background: 'transparent', color: 'white', border: '1px solid white', fontWeight: 500, borderRadius: '4px', display: 'inline-block' }}>
+                <Link to="/about" className="btn btn-outline" style={{ padding: '16px 36px', fontSize: '1.05rem', background: 'rgba(0,0,0,0.5)', color: 'white', border: '1px solid white', fontWeight: 500, borderRadius: '4px', display: 'inline-block' }}>
                   Our Story
                 </Link>
               </motion.div>
@@ -161,7 +161,7 @@ const Home = () => {
       {/* 2. Featured Categories (Minimal Visual Circles) */}
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={sectionVariants} className="container" style={{ marginTop: 'var(--spacing-xxl)' }}>
         <h2 style={{ marginBottom: 'var(--spacing-xl)', textAlign: 'center', fontWeight: 700, fontSize: '1.8rem' }}>Shop by Category</h2>
-        <RevealGrid style={{ display: 'flex', justifyContent: 'center', gap: 'var(--spacing-2xl)', flexWrap: 'wrap' }}>
+        <RevealGrid className="category-grid" style={{ display: 'flex', justifyContent: 'center', gap: 'var(--spacing-2xl)', flexWrap: 'wrap' }}>
           {[
             { title: 'Necklaces', img: 'https://images.unsplash.com/photo-1599643478524-fb5244dc6eb4?q=80&w=400&auto=format&fit=crop' },
             { title: 'Rings', img: 'https://images.unsplash.com/photo-1605100804763-247f67b2548e?q=80&w=400&auto=format&fit=crop' },
@@ -170,7 +170,7 @@ const Home = () => {
           ].map((cat, idx) => (
             <RevealCard key={idx} index={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
               <Link to={`/shop?q=${cat.title.toLowerCase()}`} style={{ display: 'block', textDecoration: 'none' }}>
-                <motion.div whileHover={shouldReduceMotion ? {} : { scale: 1.05 }} transition={{ duration: 0.4, ease: premiumEase }} style={{ width: '160px', height: '160px', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 10px 20px rgba(0,0,0,0.05)', border: '1px solid var(--color-border)' }}>
+                <motion.div className="category-circle" whileHover={shouldReduceMotion ? {} : { scale: 1.05 }} transition={{ duration: 0.4, ease: premiumEase }} style={{ width: '160px', height: '160px', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 10px 20px rgba(0,0,0,0.05)', border: '1px solid var(--color-border)' }}>
                   <img src={cat.img} alt={cat.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </motion.div>
                 <h3 style={{ textAlign: 'center', margin: '12px 0 0 0', fontSize: '1rem', fontWeight: 500, color: 'var(--color-text-main)' }}>{cat.title}</h3>

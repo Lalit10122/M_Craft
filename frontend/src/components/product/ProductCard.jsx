@@ -57,7 +57,7 @@ const ProductCard = ({ product, square = false, onQuickView }) => {
 
   return (
     <motion.div 
-      className="glass-panel" 
+      className="glass-panel product-card" 
       style={{ padding: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', cursor: 'pointer', overflow: 'hidden', position: 'relative', height: '100%' }}
       whileHover={{ 
         y: -5,
@@ -159,12 +159,18 @@ const ProductCard = ({ product, square = false, onQuickView }) => {
         
         {/* Ratings */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
-          <div style={{ display: 'flex', color: '#fbbf24' }}>
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={14} fill={i < (product.rating || 5) ? '#fbbf24' : 'transparent'} />
-            ))}
-          </div>
-          <span style={{ fontSize: '0.8rem', color: '#888' }}>({product.reviewCount || 0})</span>
+          {(!product.reviewCount || product.reviewCount === 0) ? (
+            <span style={{ fontSize: '0.8rem', color: '#888' }}>No reviews yet</span>
+          ) : (
+            <>
+              <div style={{ display: 'flex', color: '#fbbf24' }}>
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={14} fill={i < (product.rating || 5) ? '#fbbf24' : 'transparent'} />
+                ))}
+              </div>
+              <span style={{ fontSize: '0.8rem', color: '#888' }}>({product.reviewCount})</span>
+            </>
+          )}
         </div>
 
         {/* Pricing */}

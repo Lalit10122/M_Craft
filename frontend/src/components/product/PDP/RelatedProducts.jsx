@@ -44,7 +44,7 @@ const RelatedProducts = ({ currentProduct }) => {
       <h3 className={styles.sectionTitle}>You May Also Like</h3>
       <div className={`no-scrollbar ${styles.relatedScrollContainer}`}>
         {relatedProducts.map(product => (
-          <div key={product.id} className={styles.relatedCardWrapper}>
+          <div key={product.id} className="carousel-card">
             <ProductCard product={product} square={true} />
           </div>
         ))}

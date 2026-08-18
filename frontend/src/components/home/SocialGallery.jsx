@@ -38,7 +38,7 @@ const SocialGallery = () => {
               <motion.img 
                 whileHover={shouldReduceMotion ? {} : { scale: 1.04 }}
                 transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-                src={`https://picsum.photos/seed/ugc${num}/600/600`} 
+                src={`https://images.unsplash.com/photo-1599643478524-fb5244dc6eb4?q=80&w=400&auto=format&fit=crop`} 
                 alt="Customer styled" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
               />

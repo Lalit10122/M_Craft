@@ -83,10 +83,11 @@ const ProductDetail = () => {
           type="product"
         />
       )}
-      <div className="container" style={{ padding: '40px 20px', position: 'relative' }}>
-        {/* Breadcrumb / Back */}
+      <div className="container" style={{ padding: '20px 20px 40px', position: 'relative' }}>
+        {/* Breadcrumb / Back (hidden on mobile) */}
         <button 
           onClick={() => navigate('/shop')} 
+          className="hide-mobile"
           style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '32px', color: '#666', fontWeight: 500 }}
         >
           <ArrowLeft size={20} /> Back to Shop

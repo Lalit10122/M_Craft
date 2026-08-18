@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingBag, Heart, CheckCircle, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Heart, CheckCircle, ShieldCheck, Truck, RotateCcw, Ticket } from 'lucide-react';
 import styles from './PDP.module.css';
 
 const ProductActions = ({ product, onAddToCart, added }) => {
@@ -17,8 +17,8 @@ const ProductActions = ({ product, onAddToCart, added }) => {
       )}
 
       <div className={styles.buttonGroup}>
-        <button 
-          onClick={onAddToCart} 
+        <button
+          onClick={onAddToCart}
           className={`btn btn-primary ${styles.addToCartBtn}`}
           disabled={isOutOfStock}
         >
@@ -30,15 +30,23 @@ const ProductActions = ({ product, onAddToCart, added }) => {
         </button>
       </div>
 
-      {/* Trust Badges under CTA */}
-      <div className={styles.trustBadges}>
-        <div className={styles.trustBadge}>
-          <ShieldCheck size={16} color="#16a34a" />
-          <span>Secure Checkout</span>
+      {/* Trust info list (vertical, like the reference) */}
+      <div className={styles.trustList}>
+        <div className={styles.trustItem}>
+          <RotateCcw size={18} color="#555" />
+          <span>7 Day Easy Returns & Exchanges</span>
         </div>
-        <div className={styles.trustBadge}>
-          <ShieldCheck size={16} color="#16a34a" />
-          <span>Guaranteed Authenticity</span>
+        <div className={styles.trustItem}>
+          <Ticket size={18} color="#555" />
+          <span>Use code <strong>FIRST10</strong> for 10% off your first order</span>
+        </div>
+        <div className={styles.trustItem}>
+          <Truck size={18} color="#555" />
+          <span>Free shipping on all prepaid orders</span>
+        </div>
+        <div className={styles.trustItem}>
+          <ShieldCheck size={18} color="#555" />
+          <span>100% Authentic & Hypoallergenic</span>
         </div>
       </div>
     </div>

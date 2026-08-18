@@ -41,19 +41,23 @@ const PromoBanner = () => {
     <div style={{
       background: 'linear-gradient(90deg, var(--color-primary), #333)',
       color: 'white',
-      padding: '10px',
+      height: '40px',
       position: 'relative',
       textAlign: 'center',
-      zIndex: 100
+      zIndex: 100,
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
     }}>
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentPromo.id}
+          key={currentPromoIndex}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.3 }}
-          style={{ cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
+          style={{ cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', position: 'absolute', width: '90%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
           onClick={() => {
             if (currentPromo.scope === 'SPECIFIC_PRODUCTS' || currentPromo.scope === 'CATEGORY' || currentPromo.scope === 'COLLECTION') {
               navigate(`/campaign/${currentPromo.id}`);

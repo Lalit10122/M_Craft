@@ -25,7 +25,7 @@ export const mockOrders = [
       {
         id: 'item_1',
         productId: 'prod_1',
-        product: { name: 'Aurelia Signature Necklace', images: ['https://picsum.photos/seed/necklace1/400/400'] },
+        product: { name: 'Aurelia Signature Necklace', images: ['https://images.unsplash.com/photo-1599643478524-fb5244dc6eb4?q=80&w=400&auto=format&fit=crop'] },
         quantity: 1,
         priceAtPurchase: 2499
       }
@@ -57,7 +57,7 @@ export const mockOrders = [
       {
         id: 'item_2',
         productId: 'prod_2',
-        product: { name: 'Evil Eye Charm Bracelet', images: ['https://picsum.photos/seed/bracelet1/400/400'] },
+        product: { name: 'Evil Eye Charm Bracelet', images: ['https://images.unsplash.com/photo-1599643478524-fb5244dc6eb4?q=80&w=400&auto=format&fit=crop'] },
         quantity: 1,
         priceAtPurchase: 1299
       }

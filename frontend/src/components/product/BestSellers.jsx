@@ -78,7 +78,7 @@ const BestSellers = ({ onQuickView }) => {
           className="no-scrollbar"
         >
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} style={{ minWidth: '280px', flexShrink: 0 }}>
+            <div key={i} className="carousel-card" style={{ flexShrink: 0 }}>
               <ProductCardSkeleton />
             </div>
           ))}
@@ -98,7 +98,7 @@ const BestSellers = ({ onQuickView }) => {
           className="no-scrollbar"
         >
           {bestSellers.map((product, index) => (
-            <RevealCard key={product.id} index={index} style={{ minWidth: '280px', scrollSnapAlign: 'start', flexShrink: 0 }}>
+            <RevealCard key={product.id} index={index} className="carousel-card" style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
               <ProductCard product={product} onQuickView={onQuickView} />
             </RevealCard>
           ))}
