@@ -85,7 +85,8 @@ export const bulkUploadProducts = async (req, res, next) => {
                         const {
                             Name, Description, 'Category Slug': categorySlug,
                             Material, Color, 'Base Price': basePriceStr,
-                            MRP: mrpStr, 'Stock Quantity': stockQtyStr
+                            MRP: mrpStr, 'Stock Quantity': stockQtyStr,
+                            'Image URLs': imageUrlsStr
                         } = row;
 
                         if (!Name || !categorySlug || !basePriceStr || !mrpStr) {
@@ -105,6 +106,10 @@ export const bulkUploadProducts = async (req, res, next) => {
                             slug = `${slug}-${Math.floor(Math.random() * 10000)}`;
                         }
 
+                        const images = imageUrlsStr 
+                            ? imageUrlsStr.split(',').map(url => url.trim()).filter(url => url.length > 0)
+                            : [];
+
                         await prisma.product.create({
                             data: {
                                 name: Name,
@@ -116,6 +121,7 @@ export const bulkUploadProducts = async (req, res, next) => {
                                 basePrice: parseFloat(basePriceStr),
                                 mrp: parseFloat(mrpStr),
                                 stockQty: parseInt(stockQtyStr, 10) || 0,
+                                images,
                                 isActive: true,
                             }
                         });
