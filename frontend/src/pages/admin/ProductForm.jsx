@@ -9,6 +9,9 @@ const ProductForm = () => {
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
+  const [allCollections, setAllCollections] = useState([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState([]);
+  
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -33,10 +36,14 @@ const ProductForm = () => {
   const [uploadingImages, setUploadingImages] = useState(false);
 
   useEffect(() => {
-    // Fetch categories
-    api.get('/categories')
-      .then(res => setCategories(res.data.data))
-      .catch(console.error);
+    // Fetch categories and collections
+    Promise.all([
+      api.get('/categories'),
+      api.get('/collections')
+    ]).then(([catRes, colRes]) => {
+      setCategories(catRes.data.data || []);
+      setAllCollections(colRes.data.data || []);
+    }).catch(console.error);
 
     if (isEditMode) {
       // Fetch product data
@@ -58,6 +65,7 @@ const ProductForm = () => {
           // Assuming variants are passed in response if they exist
           if (p.variants) setVariants(p.variants);
           if (p.images) setImages(p.images);
+          if (p.collections) setSelectedCollectionIds(p.collections.map(c => c.collectionId));
           setLoading(false);
         })
         .catch(err => {
@@ -141,7 +149,8 @@ const ProductForm = () => {
         mrp: parseFloat(formData.mrp) || parseFloat(formData.basePrice),
         stockQty: parseInt(formData.stockQty) || 0,
         slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
-        variants
+        variants,
+        collectionIds: selectedCollectionIds
       };
 
       let newProductId = null;
@@ -223,6 +232,31 @@ const ProductForm = () => {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
+            </div>
+            
+            <div>
+              <label style={styles.label}>Collections</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '8px', borderRadius: '8px' }}>
+                {allCollections.length === 0 ? (
+                  <span style={{ color: '#888', fontSize: '0.9rem' }}>No collections found</span>
+                ) : allCollections.map(col => (
+                  <label key={col.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedCollectionIds.includes(col.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCollectionIds([...selectedCollectionIds, col.id]);
+                        } else {
+                          setSelectedCollectionIds(selectedCollectionIds.filter(id => id !== col.id));
+                        }
+                      }}
+                      style={{ width: '16px', height: '16px', accentColor: 'var(--color-primary)' }}
+                    />
+                    {col.name}
+                  </label>
+                ))}
+              </div>
             </div>
             
             {categoryAttributes.map(attr => (

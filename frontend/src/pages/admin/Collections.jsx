@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import api from '../../utils/api';
 
 const Collections = () => {
+  const navigate = useNavigate();
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -95,6 +97,9 @@ const Collections = () => {
                 <td style={{ padding: '12px 16px' }}>{col._count?.products || 0}</td>
                 <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button onClick={() => navigate(`/admin/collections/${col.id}`)} style={{ padding: '6px', background: '#e0f2fe', border: '1px solid #7dd3fc', borderRadius: '4px', cursor: 'pointer', color: '#0369a1', fontSize: '0.85rem', fontWeight: 500 }}>
+                      Manage Products
+                    </button>
                     <button onClick={() => handleEdit(col)} style={{ padding: '6px', background: 'none', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: '#555' }}>
                       <Edit2 size={16} />
                     </button>

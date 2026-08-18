@@ -34,9 +34,10 @@ export const createProduct = async (req, res, next) => {
             isActive: z.boolean().default(true),
             isBestSeller: z.boolean().default(false),
             metaTitle: z.string().optional(),
-            metaDescription: z.string().optional()
+            metaDescription: z.string().optional(),
+            collectionIds: z.array(z.string().cuid()).optional()
         });
-        const data = schema.parse(req.body);
+        const { collectionIds, ...data } = schema.parse(req.body);
         let slug = slugify(data.name);
         let existing = await prisma.product.findUnique({ where: { slug } });
         if (existing) {
@@ -44,7 +45,15 @@ export const createProduct = async (req, res, next) => {
         }
         
         const product = await prisma.product.create({
-            data: { ...data, slug }
+            data: { 
+                ...data, 
+                slug,
+                collections: collectionIds && collectionIds.length > 0 ? {
+                    create: collectionIds.map(id => ({
+                        collection: { connect: { id } }
+                    }))
+                } : undefined
+            }
         });
 
         await prisma.auditLog.create({
@@ -86,7 +95,8 @@ export const bulkUploadProducts = async (req, res, next) => {
                             Name, Description, 'Category Slug': categorySlug,
                             Material, Color, 'Base Price': basePriceStr,
                             MRP: mrpStr, 'Stock Quantity': stockQtyStr,
-                            'Image URLs': imageUrlsStr
+                            'Image URLs': imageUrlsStr,
+                            'Collection Slugs': collectionSlugsStr
                         } = row;
 
                         if (!Name || !categorySlug || !basePriceStr || !mrpStr) {
@@ -98,6 +108,16 @@ export const bulkUploadProducts = async (req, res, next) => {
                         if (!category) {
                             errors.push(`Row with Name "${Name}" has invalid Category Slug "${categorySlug}".`);
                             continue;
+                        }
+
+                        let collectionIds = [];
+                        if (collectionSlugsStr) {
+                            const slugs = collectionSlugsStr.split(',').map(s => s.trim()).filter(Boolean);
+                            for (const cSlug of slugs) {
+                                const col = await prisma.collection.findUnique({ where: { slug: cSlug } });
+                                if (col) collectionIds.push(col.id);
+                                else errors.push(`Row with Name "${Name}" has invalid Collection Slug "${cSlug}".`);
+                            }
                         }
 
                         let slug = slugify(Name);
@@ -123,6 +143,11 @@ export const bulkUploadProducts = async (req, res, next) => {
                                 stockQty: parseInt(stockQtyStr, 10) || 0,
                                 images,
                                 isActive: true,
+                                collections: collectionIds.length > 0 ? {
+                                    create: collectionIds.map(id => ({
+                                        collection: { connect: { id } }
+                                    }))
+                                } : undefined
                             }
                         });
                         successCount++;
@@ -169,9 +194,10 @@ export const updateProduct = async (req, res, next) => {
             isActive: z.boolean().optional(),
             isBestSeller: z.boolean().optional(),
             metaTitle: z.string().optional(),
-            metaDescription: z.string().optional()
+            metaDescription: z.string().optional(),
+            collectionIds: z.array(z.string().cuid()).optional()
         });
-        const data = schema.parse(req.body);
+        const { collectionIds, ...data } = schema.parse(req.body);
         if (data.name) {
             let slug = slugify(data.name);
             let existing = await prisma.product.findUnique({ where: { slug } });
@@ -181,9 +207,19 @@ export const updateProduct = async (req, res, next) => {
             data.slug = slug;
         }
 
+        const updateData = { ...data };
+        if (collectionIds !== undefined) {
+            updateData.collections = {
+                deleteMany: {},
+                create: collectionIds.map(cid => ({
+                    collection: { connect: { id: cid } }
+                }))
+            };
+        }
+
         const product = await prisma.product.update({
             where: { id },
-            data
+            data: updateData
         });
 
         await prisma.auditLog.create({
@@ -407,6 +443,60 @@ export const updateCollection = async (req, res, next) => {
             data: { name, slug }
         });
         return successResponse(res, { data: collection, message: 'Collection updated' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getCollection = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const collection = await prisma.collection.findUnique({
+            where: { id },
+            include: {
+                products: {
+                    include: {
+                        product: {
+                            include: { category: true }
+                        }
+                    }
+                }
+            }
+        });
+        if (!collection) return errorResponse(res, { message: 'Collection not found', statusCode: 404 });
+        
+        // Map products for easier frontend consumption
+        const formattedCollection = {
+            ...collection,
+            products: collection.products.map(pc => pc.product)
+        };
+
+        return successResponse(res, { data: formattedCollection });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const addProductsToCollection = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { productIds } = req.body; // array of product IDs
+        if (!productIds || !Array.isArray(productIds)) {
+            return errorResponse(res, { message: 'productIds array is required', statusCode: 400 });
+        }
+
+        const dataToInsert = productIds.map(productId => ({
+            collectionId: id,
+            productId
+        }));
+
+        // We use createMany and skip duplicates so we don't throw P2002 if some are already in it.
+        await prisma.productCollection.createMany({
+            data: dataToInsert,
+            skipDuplicates: true
+        });
+
+        return successResponse(res, { message: 'Products added to collection successfully' });
     } catch (error) {
         next(error);
     }

@@ -71,8 +71,8 @@ const Products = () => {
   };
 
   const downloadTemplate = () => {
-    const headers = ['Name', 'Description', 'Category Slug', 'Material', 'Color', 'Base Price', 'MRP', 'Stock Quantity', 'Image URLs'];
-    const sampleData = ['Gold Necklace', 'A beautiful 18k gold necklace', 'necklaces', 'Gold', 'Gold', '15000', '18000', '10', '"https://example.com/image1.jpg, https://example.com/image2.jpg"'];
+    const headers = ['Name', 'Description', 'Category Slug', 'Material', 'Color', 'Base Price', 'MRP', 'Stock Quantity', 'Image URLs', 'Collection Slugs'];
+    const sampleData = ['Gold Necklace', 'A beautiful 18k gold necklace', 'necklaces', 'Gold', 'Gold', '15000', '18000', '10', '"https://example.com/image1.jpg, https://example.com/image2.jpg"', '"best-sellers, new-arrivals"'];
     const csvContent = headers.join(',') + '\n' + sampleData.join(',');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -216,9 +216,9 @@ const Products = () => {
               <h4 style={{ margin: '0 0 8px 0' }}>Instructions</h4>
               <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>
                 Please upload a CSV file with the following exact columns: 
-                <strong> Name, Description, Category Slug, Material, Color, Base Price, MRP, Stock Quantity, Image URLs</strong>.
+                <strong> Name, Description, Category Slug, Material, Color, Base Price, MRP, Stock Quantity, Image URLs, Collection Slugs</strong>.
                 <br /><br />
-                <em>Note: "Category Slug" must match an existing category (e.g., necklaces, earrings). You can provide multiple comma-separated links in the "Image URLs" column.</em>
+                <em>Note: "Category Slug" must match an existing category. You can provide multiple comma-separated links in the "Image URLs" column, and multiple comma-separated collection slugs in "Collection Slugs".</em>
               </p>
               <button 
                 onClick={downloadTemplate} 

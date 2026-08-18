@@ -50,6 +50,7 @@ const Dashboard = React.lazy(() => import('./pages/admin/Dashboard'));
 const Products = React.lazy(() => import('./pages/admin/Products'));
 const ProductForm = React.lazy(() => import('./pages/admin/ProductForm'));
 const AdminCollections = React.lazy(() => import('./pages/admin/Collections'));
+const AdminCollectionDetail = React.lazy(() => import('./pages/admin/CollectionDetail'));
 const Orders = React.lazy(() => import('./pages/admin/Orders'));
 const OrderDetail = React.lazy(() => import('./pages/admin/OrderDetail'));
 const Returns = React.lazy(() => import('./pages/admin/Returns'));
@@ -143,6 +144,7 @@ const AnimatedRoutes = () => {
         <Route path="/admin/products/:id/edit" element={<AdminProtectedRoute><AdminLayout><ProductForm /></AdminLayout></AdminProtectedRoute>} />
         
         <Route path="/admin/collections" element={<AdminProtectedRoute><AdminLayout><AdminCollections /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/admin/collections/:id" element={<AdminProtectedRoute><AdminLayout><AdminCollectionDetail /></AdminLayout></AdminProtectedRoute>} />
         
         <Route path="/admin/orders" element={<AdminProtectedRoute><AdminLayout><Orders /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/admin/orders/:id" element={<AdminProtectedRoute><AdminLayout><OrderDetail /></AdminLayout></AdminProtectedRoute>} />

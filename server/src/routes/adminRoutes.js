@@ -8,7 +8,7 @@ import {
     uploadImages, deleteImage,
     addVariant, updateVariant, deleteVariant,
     addToCollection, removeFromCollection,
-    createCollection, updateCollection, deleteCollection,
+    createCollection, updateCollection, deleteCollection, getCollection, addProductsToCollection,
     listPendingReviews, approveReview, bulkUploadProducts
 } from '../controllers/admin/adminProductController.js';
 
@@ -80,9 +80,11 @@ router.post('/products/:id/collections', addToCollection);
 router.delete('/products/:id/collections', removeFromCollection);
 
 // Collections
+router.get('/collections/:id', getCollection);
 router.post('/collections', createCollection);
 router.put('/collections/:id', updateCollection);
 router.delete('/collections/:id', deleteCollection);
+router.post('/collections/:id/products', addProductsToCollection);
 
 // Pincodes
 router.get('/pincodes', getPincodes);
