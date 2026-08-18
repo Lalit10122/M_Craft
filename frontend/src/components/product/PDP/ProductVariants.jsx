@@ -14,7 +14,7 @@ const ProductVariants = ({ product }) => {
   const sizes = ['6', '7', '8', 'Free Size'];
 
   // Only show variants if it makes sense (e.g., Rings have sizes)
-  const isRing = product?.category?.name?.toLowerCase().includes('ring');
+  const isRing = product?.categories?.some(c => c.name?.toLowerCase().includes('ring'));
 
   return (
     <div className={styles.variantsContainer}>

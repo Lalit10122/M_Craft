@@ -30,7 +30,7 @@ const ProductInfo = ({ product, reviewsCount = 124, rating = 4.8 }) => {
 
       {/* Social proof line */}
       <p className={styles.socialProof}>
-        {product?.category?.name || 'Jewelry'}
+        {product?.categories?.map(c => c.name).join(', ') || 'Jewelry'}
         {stockQty > 0 && <span> · Free Shipping on Prepaid</span>}
       </p>
 

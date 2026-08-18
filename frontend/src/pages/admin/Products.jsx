@@ -71,8 +71,8 @@ const Products = () => {
   };
 
   const downloadTemplate = () => {
-    const headers = ['Name', 'Description', 'Category Slug', 'Material', 'Color', 'Base Price', 'MRP', 'Stock Quantity', 'Image URLs', 'Collection Slugs'];
-    const sampleData = ['Gold Necklace', 'A beautiful 18k gold necklace', 'necklaces', 'Gold', 'Gold', '15000', '18000', '10', '"https://example.com/image1.jpg, https://example.com/image2.jpg"', '"best-sellers, new-arrivals"'];
+    const headers = ['Name', 'Description', 'Category Slugs', 'Material', 'Color', 'Base Price', 'MRP', 'Stock Quantity', 'Image URLs', 'Collection Slugs'];
+    const sampleData = ['Gold Necklace', 'A beautiful 18k gold necklace', '"necklaces, rings"', 'Gold', 'Gold', '15000', '18000', '10', '"https://example.com/image1.jpg, https://example.com/image2.jpg"', '"best-sellers, new-arrivals"'];
     const csvContent = headers.join(',') + '\n' + sampleData.join(',');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -88,7 +88,7 @@ const Products = () => {
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category?.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (p.categories && p.categories.some(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
   return (
@@ -151,7 +151,7 @@ const Products = () => {
                     <img src={product.firstImage} alt={product.name} style={{ width: 48, height: 48, borderRadius: '6px', objectFit: 'cover' }} />
                     <span style={{ fontWeight: 500, color: '#111' }}>{product.name}</span>
                   </td>
-                  <td style={{ padding: '12px 16px' }}>{product.category?.name || '-'}</td>
+                  <td style={{ padding: '12px 16px' }}>{product.categories?.map(c => c.name).join(', ') || '-'}</td>
                   <td style={{ padding: '12px 16px' }}>
                     <strong>₹{product.basePrice}</strong>
                     {product.mrp > product.basePrice && <span style={{ marginLeft: '8px', color: '#888', textDecoration: 'line-through', fontSize: '0.85rem' }}>₹{product.mrp}</span>}
@@ -216,9 +216,9 @@ const Products = () => {
               <h4 style={{ margin: '0 0 8px 0' }}>Instructions</h4>
               <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>
                 Please upload a CSV file with the following exact columns: 
-                <strong> Name, Description, Category Slug, Material, Color, Base Price, MRP, Stock Quantity, Image URLs, Collection Slugs</strong>.
+                <strong> Name, Description, Category Slugs, Material, Color, Base Price, MRP, Stock Quantity, Image URLs, Collection Slugs</strong>.
                 <br /><br />
-                <em>Note: "Category Slug" must match an existing category. You can provide multiple comma-separated links in the "Image URLs" column, and multiple comma-separated collection slugs in "Collection Slugs".</em>
+                <em>Note: You can provide multiple comma-separated links in the "Image URLs" column, and multiple comma-separated slugs in "Category Slugs" and "Collection Slugs".</em>
               </p>
               <button 
                 onClick={downloadTemplate} 

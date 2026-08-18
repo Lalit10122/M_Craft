@@ -11,7 +11,7 @@ export const getProduct = async (req, res, next) => {
         const { id } = req.params;
         const product = await prisma.product.findUnique({
             where: { id },
-            include: { variants: true }
+            include: { variants: true, categories: true, collections: true }
         });
         if (!product) return errorResponse(res, { message: 'Product not found', statusCode: 404 });
         return successResponse(res, { data: product });
@@ -25,7 +25,7 @@ export const createProduct = async (req, res, next) => {
         const schema = z.object({
             name: z.string().min(1),
             description: z.string().optional(),
-            categoryId: z.string().cuid().optional(),
+            categoryIds: z.array(z.string().cuid()).optional(),
             material: z.string().optional(),
             color: z.string().optional(),
             basePrice: z.number().positive(),
@@ -37,7 +37,7 @@ export const createProduct = async (req, res, next) => {
             metaDescription: z.string().optional(),
             collectionIds: z.array(z.string().cuid()).optional()
         });
-        const { collectionIds, ...data } = schema.parse(req.body);
+        const { collectionIds, categoryIds, ...data } = schema.parse(req.body);
         let slug = slugify(data.name);
         let existing = await prisma.product.findUnique({ where: { slug } });
         if (existing) {
@@ -52,6 +52,9 @@ export const createProduct = async (req, res, next) => {
                     create: collectionIds.map(id => ({
                         collection: { connect: { id } }
                     }))
+                } : undefined,
+                categories: categoryIds && categoryIds.length > 0 ? {
+                    connect: categoryIds.map(id => ({ id }))
                 } : undefined
             }
         });
@@ -92,25 +95,32 @@ export const bulkUploadProducts = async (req, res, next) => {
                 for (const row of results) {
                     try {
                         const {
-                            Name, Description, 'Category Slug': categorySlug,
+                            Name, Description, 'Category Slugs': categorySlugsStr,
                             Material, Color, 'Base Price': basePriceStr,
                             MRP: mrpStr, 'Stock Quantity': stockQtyStr,
                             'Image URLs': imageUrlsStr,
                             'Collection Slugs': collectionSlugsStr
                         } = row;
 
-                        if (!Name || !categorySlug || !basePriceStr || !mrpStr) {
+                        if (!Name || !categorySlugsStr || !basePriceStr || !mrpStr) {
                             errors.push(`Row with Name "${Name || 'Unknown'}" is missing required fields.`);
                             continue;
                         }
 
-                        let category = await prisma.category.findUnique({ where: { slug: categorySlug } });
-                        if (!category) {
-                            // Auto-create category if missing
-                            const categoryName = categorySlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-                            category = await prisma.category.create({
-                                data: { name: categoryName, slug: categorySlug }
-                            });
+                        let categoryIds = [];
+                        if (categorySlugsStr) {
+                            const slugs = categorySlugsStr.split(',').map(s => s.trim()).filter(Boolean);
+                            for (const cSlug of slugs) {
+                                let category = await prisma.category.findUnique({ where: { slug: cSlug } });
+                                if (!category) {
+                                    // Auto-create category if missing
+                                    const categoryName = cSlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                                    category = await prisma.category.create({
+                                        data: { name: categoryName, slug: cSlug }
+                                    });
+                                }
+                                categoryIds.push(category.id);
+                            }
                         }
 
                         let collectionIds = [];
@@ -144,7 +154,6 @@ export const bulkUploadProducts = async (req, res, next) => {
                                 name: Name,
                                 slug,
                                 description: Description || '',
-                                categoryId: category.id,
                                 material: Material || 'Unknown',
                                 color: Color || 'Unknown',
                                 basePrice: parseFloat(basePriceStr),
@@ -152,6 +161,9 @@ export const bulkUploadProducts = async (req, res, next) => {
                                 stockQty: parseInt(stockQtyStr, 10) || 0,
                                 images,
                                 isActive: true,
+                                categories: categoryIds.length > 0 ? {
+                                    connect: categoryIds.map(id => ({ id }))
+                                } : undefined,
                                 collections: collectionIds.length > 0 ? {
                                     create: collectionIds.map(id => ({
                                         collection: { connect: { id } }
@@ -194,7 +206,7 @@ export const updateProduct = async (req, res, next) => {
         const schema = z.object({
             name: z.string().min(1).optional(),
             description: z.string().optional(),
-            categoryId: z.string().cuid().optional(),
+            categoryIds: z.array(z.string().cuid()).optional(),
             material: z.string().optional(),
             color: z.string().optional(),
             basePrice: z.number().positive().optional(),
@@ -206,7 +218,7 @@ export const updateProduct = async (req, res, next) => {
             metaDescription: z.string().optional(),
             collectionIds: z.array(z.string().cuid()).optional()
         });
-        const { collectionIds, ...data } = schema.parse(req.body);
+        const { collectionIds, categoryIds, ...data } = schema.parse(req.body);
         if (data.name) {
             let slug = slugify(data.name);
             let existing = await prisma.product.findUnique({ where: { slug } });
@@ -223,6 +235,12 @@ export const updateProduct = async (req, res, next) => {
                 create: collectionIds.map(cid => ({
                     collection: { connect: { id: cid } }
                 }))
+            };
+        }
+        if (categoryIds !== undefined) {
+            updateData.categories = {
+                set: [], // Disconnect old
+                connect: categoryIds.map(cid => ({ id: cid })) // Connect new
             };
         }
 

@@ -126,7 +126,7 @@ const CollectionDetail = () => {
                       )}
                       <span style={{ fontWeight: 500, color: '#111' }}>{product.name}</span>
                     </td>
-                    <td style={{ padding: '12px 16px' }}>{product.category?.name || '-'}</td>
+                    <td style={{ padding: '12px 16px' }}>{product.categories?.map(c => c.name).join(', ') || '-'}</td>
                     <td style={{ padding: '12px 16px' }}>₹{product.basePrice}</td>
                     <td style={{ padding: '12px 16px' }}>{product.stockQty}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'right' }}>
@@ -214,7 +214,7 @@ const CollectionDetail = () => {
                           )}
                           <span style={{ fontWeight: 500, color: '#111' }}>{product.name}</span>
                         </td>
-                        <td style={{ padding: '12px 16px' }}>{product.category?.name || '-'}</td>
+                        <td style={{ padding: '12px 16px' }}>{product.categories?.map(c => c.name).join(', ') || '-'}</td>
                       </tr>
                     ))
                   )}

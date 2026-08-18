@@ -12,7 +12,7 @@ export const listProducts = async (req, res, next) => {
     const where = { isActive: true };
 
     if (isBestSeller === 'true') where.isBestSeller = true;
-    if (category) where.category = { slug: category };
+    if (category) where.categories = { some: { slug: category } };
     if (collection) where.collections = { some: { collection: { slug: collection } } };
     if (color) where.color = { equals: color, mode: 'insensitive' };
     if (minPrice || maxPrice) {
@@ -52,7 +52,7 @@ export const listProducts = async (req, res, next) => {
         skip,
         take: limitNumber,
         include: {
-          category: { select: { name: true, slug: true } },
+          categories: { select: { name: true, slug: true } },
           collections: true,
           attributeValues: {
              include: { attribute: true }
@@ -105,14 +105,14 @@ export const getProductBySlug = async (req, res, next) => {
     const product = await prisma.product.findUnique({
       where: { slug },
       include: {
-        category: true,
+        categories: { select: { id: true, name: true, slug: true } },
         variants: true,
         reviews: {
           where: { isApproved: true },
           orderBy: { createdAt: 'desc' },
           include: { user: { select: { name: true } } }
         },
-        collections: { include: { collection: true } },
+        collections: { select: { collection: true } },
         attributeValues: {
           include: { attribute: true }
         }

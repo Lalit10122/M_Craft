@@ -121,7 +121,7 @@ model Category {
   parentId  String?
   parent    Category?       @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children  Category[]      @relation("CategoryHierarchy")
-  products  Product[]
+  products  Product[]     @relation("ProductCategories")
   attributes CategoryAttribute[]
 }
 
@@ -147,8 +147,7 @@ model Product {
   name             String
   slug             String               @unique
   description      String
-  categoryId       String
-  category         Category             @relation(fields: [categoryId], references: [id])
+  categories       Category[]           @relation("ProductCategories")
   material         String
   color            String
   basePrice        Float

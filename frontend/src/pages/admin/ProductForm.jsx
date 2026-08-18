@@ -11,12 +11,12 @@ const ProductForm = () => {
   const [categories, setCategories] = useState([]);
   const [allCollections, setAllCollections] = useState([]);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
     description: '',
-    categoryId: '',
     material: '',
     color: '',
     basePrice: '',
@@ -54,7 +54,6 @@ const ProductForm = () => {
             name: p.name,
             slug: p.slug,
             description: p.description || '',
-            categoryId: p.categoryId,
             basePrice: p.basePrice || '',
             mrp: p.mrp || '',
             stockQty: p.stockQty || '',
@@ -66,6 +65,7 @@ const ProductForm = () => {
           if (p.variants) setVariants(p.variants);
           if (p.images) setImages(p.images);
           if (p.collections) setSelectedCollectionIds(p.collections.map(c => c.collectionId));
+          if (p.categories) setSelectedCategoryIds(p.categories.map(c => c.id));
           setLoading(false);
         })
         .catch(err => {
@@ -77,14 +77,14 @@ const ProductForm = () => {
   }, [id, isEditMode, navigate]);
 
   useEffect(() => {
-    if (formData.categoryId) {
-      api.get(`/admin/category-attributes?categoryId=${formData.categoryId}`)
+    if (selectedCategoryIds.length > 0) {
+      api.get(`/admin/category-attributes?categoryId=${selectedCategoryIds[0]}`)
         .then(res => setCategoryAttributes(res.data.data || []))
         .catch(console.error);
     } else {
       setCategoryAttributes([]);
     }
-  }, [formData.categoryId]);
+  }, [selectedCategoryIds]);
 
   // Live computed discount
   const basePriceNum = parseFloat(formData.basePrice) || 0;
@@ -150,7 +150,8 @@ const ProductForm = () => {
         stockQty: parseInt(formData.stockQty) || 0,
         slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
         variants,
-        collectionIds: selectedCollectionIds
+        collectionIds: selectedCollectionIds,
+        categoryIds: selectedCategoryIds
       };
 
       let newProductId = null;
@@ -225,13 +226,27 @@ const ProductForm = () => {
             </div>
 
             <div>
-              <label style={styles.label}>Category</label>
-              <select style={styles.input} value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value, attributes: {}})} required>
-                <option value="">Select Category</option>
-                {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+              <label style={styles.label}>Categories</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '8px', borderRadius: '8px' }}>
+                {categories.length === 0 ? (
+                  <span style={{ color: '#888', fontSize: '0.9rem' }}>No categories found</span>
+                ) : categories.map(cat => (
+                  <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedCategoryIds.includes(cat.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCategoryIds([...selectedCategoryIds, cat.id]);
+                        } else {
+                          setSelectedCategoryIds(selectedCategoryIds.filter(id => id !== cat.id));
+                        }
+                      }}
+                    />
+                    {cat.name}
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
             
             <div>
