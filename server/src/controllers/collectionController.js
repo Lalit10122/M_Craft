@@ -43,7 +43,7 @@ export const getCollectionBySlug = async (req, res, next) => {
         skip,
         take: limitNumber,
         include: {
-          product: { include: { category: true } }
+          product: { include: { categories: true } }
         }
       }),
       prisma.productCollection.count({ where })

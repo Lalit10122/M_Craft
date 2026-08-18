@@ -98,11 +98,14 @@ const Shop = () => {
     const fetchProducts = async () => {
       page === 1 ? setLoading(true) : setLoadingMore(true);
       try {
-        let url = `/products?page=${page}`;
-        if (query) url += `&q=${encodeURIComponent(query)}`;
-        if (categorySlug) url += `&category=${encodeURIComponent(categorySlug)}`;
-        if (collectionSlug) url += `&collection=${encodeURIComponent(collectionSlug)}`;
-        if (searchParams.get('sort')) url += `&sort=${encodeURIComponent(searchParams.get('sort'))}`;
+        let url = `/products?page=${page}&limit=12`;
+        
+        // Pass all searchParams down to API for filters to work
+        searchParams.forEach((value, key) => {
+            if (key !== 'page' && key !== 'limit') {
+                url += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+            }
+        });
         
         const res = await api.get(url);
         const fetchedProducts = res.data.data.products;
@@ -128,7 +131,7 @@ const Shop = () => {
       }
     };
     fetchProducts();
-  }, [query, categorySlug, collectionSlug, page, searchParams.get('sort')]);
+  }, [searchParams, page]);
 
   const filterDesc = collectionSlug ? `${collectionSlug.replace('-', ' ')}` : categorySlug ? `${categorySlug.replace('-', ' ')}` : query ? `results for "${query}"` : 'all products';
 
@@ -205,23 +208,43 @@ const Shop = () => {
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: (!categorySlug && !collectionSlug) ? 'var(--color-primary)' : '#555' }} onClick={() => setSearchParams({})}>
               All Products
             </label>
-            {categories.filter(c => !c.parentId).map(parent => (
-              <div key={parent.id} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
-                <strong style={{ fontSize: '0.95rem', color: '#111' }}>{parent.name}</strong>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
-                  {categories.filter(c => c.parentId === parent.id).map(child => (
-                    <label key={child.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: categorySlug === child.slug ? 'var(--color-primary)' : '#555' }} onClick={() => {
+            {categories.map(cat => {
+              // If we have a nested category structure, only process root items here. If it's a flat list, this naturally processes all.
+              if (cat.parentId) return null; 
+              
+              const children = categories.filter(c => c.parentId === cat.id);
+              
+              if (children.length === 0) {
+                 return (
+                    <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '8px', color: categorySlug === cat.slug ? 'var(--color-primary)' : '#111', fontWeight: 500 }} onClick={() => {
                         const newParams = new URLSearchParams(searchParams);
                         newParams.delete('collection');
-                        newParams.set('category', child.slug);
+                        newParams.set('category', cat.slug);
                         setSearchParams(newParams);
                     }}>
-                      {child.name}
+                      {cat.name}
                     </label>
-                  ))}
+                 );
+              }
+              
+              return (
+                <div key={cat.id} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+                  <strong style={{ fontSize: '0.95rem', color: '#111' }}>{cat.name}</strong>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
+                    {children.map(child => (
+                      <label key={child.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: categorySlug === child.slug ? 'var(--color-primary)' : '#555' }} onClick={() => {
+                          const newParams = new URLSearchParams(searchParams);
+                          newParams.delete('collection');
+                          newParams.set('category', child.slug);
+                          setSearchParams(newParams);
+                      }}>
+                        {child.name}
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </FilterAccordion>
 
           <FilterAccordion title="Collections" defaultOpen={true}>
@@ -239,15 +262,36 @@ const Shop = () => {
             </div>
           </FilterAccordion>
 
-          {categoryAttributes.map(attr => (
-            <FilterAccordion key={attr.id} title={attr.name} defaultOpen={false}>
-              {attr.options?.split(',').map(opt => opt.trim()).filter(Boolean).map(opt => (
-                <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}>
-                  <input type="checkbox" style={{ accentColor: 'var(--color-primary)' }} /> {opt}
-                </label>
-              ))}
-            </FilterAccordion>
-          ))}
+          {categoryAttributes.map(attr => {
+            const filterKey = attr.name.toLowerCase();
+            return (
+              <FilterAccordion key={attr.id} title={attr.name} defaultOpen={false}>
+                {attr.options?.split(',').map(opt => opt.trim()).filter(Boolean).map(opt => {
+                  const isChecked = searchParams.getAll(filterKey).includes(opt);
+                  return (
+                    <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555', cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        style={{ accentColor: 'var(--color-primary)' }} 
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const newParams = new URLSearchParams(searchParams);
+                          if (e.target.checked) {
+                            newParams.append(filterKey, opt);
+                          } else {
+                            const current = newParams.getAll(filterKey);
+                            newParams.delete(filterKey);
+                            current.filter(val => val !== opt).forEach(val => newParams.append(filterKey, val));
+                          }
+                          setSearchParams(newParams);
+                        }}
+                      /> {opt}
+                    </label>
+                  );
+                })}
+              </FilterAccordion>
+            );
+          })}
 
           <FilterAccordion title="Price Range" defaultOpen={false}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#555' }}><input type="radio" name="price" style={{ accentColor: 'var(--color-primary)' }} /> Under ₹1000</label>

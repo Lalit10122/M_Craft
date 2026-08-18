@@ -12,7 +12,10 @@ const Collections = () => {
   const [products, setProducts] = useState([]);
   const [loadingCollections, setLoadingCollections] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   // Fetch all collections on mount
   useEffect(() => {
@@ -30,29 +33,46 @@ const Collections = () => {
     fetchCollections();
   }, []);
 
-  // Fetch products whenever selected collection changes
+  // Fetch products whenever selected collection or page changes
   useEffect(() => {
     if (!selectedCollection) return;
 
     const fetchCollectionProducts = async () => {
-      setLoadingProducts(true);
+      page === 1 ? setLoadingProducts(true) : setLoadingMore(true);
       try {
         const url = selectedCollection === 'ALL' 
-          ? '/products?limit=24' 
-          : `/collections/${selectedCollection.slug}`;
+          ? `/products?limit=12&page=${page}` 
+          : `/collections/${selectedCollection.slug}?limit=12&page=${page}`;
         
         const res = await api.get(url);
-        // /products returns { data: { products: [...] } }
-        // /collections/:slug returns { data: { products: [...] } }
-        setProducts(res.data.data.products || []);
+        const fetchedProducts = res.data.data.products || [];
+        
+        if (page === 1) {
+          setProducts(fetchedProducts);
+        } else {
+          setProducts(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const newProducts = fetchedProducts.filter(p => !existingIds.has(p.id));
+            return [...prev, ...newProducts];
+          });
+        }
+        setHasMore(fetchedProducts.length >= 12);
       } catch (err) {
         console.error(err);
-        setProducts([]);
+        if (page === 1) setProducts([]);
       } finally {
         setLoadingProducts(false);
+        setLoadingMore(false);
       }
     };
     fetchCollectionProducts();
+  }, [selectedCollection, page]);
+
+  // Reset page when collection changes
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    setProducts([]);
   }, [selectedCollection]);
 
   if (loadingCollections) {
@@ -166,6 +186,20 @@ const Collections = () => {
                 ))}
               </RevealGrid>
             </AnimatePresence>
+          )}
+
+          {/* Load More Button */}
+          {hasMore && products.length > 0 && !loadingProducts && (
+            <div style={{ textAlign: 'center', marginTop: '40px' }}>
+              <button 
+                onClick={() => setPage(p => p + 1)} 
+                className="btn btn-outline" 
+                disabled={loadingMore}
+                style={{ padding: '12px 32px', minWidth: '200px' }}
+              >
+                {loadingMore ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
           )}
         </>
       )}
