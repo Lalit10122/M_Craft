@@ -158,7 +158,7 @@ const Dashboard = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
             {lowStock.map(item => (
               <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img src={item.firstImage} alt={item.name} style={{ width: 40, height: 40, borderRadius: '4px', objectFit: 'cover' }} />
+                <img src={item.images?.[0] || 'https://via.placeholder.com/40'} alt={item.name} style={{ width: 40, height: 40, borderRadius: '4px', objectFit: 'cover' }} />
                 <div style={{ flex: 1 }}>
                   <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 500 }}>{item.name}</p>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: '#dc2626', fontWeight: 600 }}>Only {item.stockQty} left</p>

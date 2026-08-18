@@ -58,7 +58,7 @@ const LowStock = () => {
               {lowStockProducts.map(product => (
                 <tr key={product.id} style={{ borderBottom: '1px solid #eaeaea' }}>
                   <td style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={product.firstImage} alt={product.name} style={{ width: 48, height: 48, borderRadius: '6px', objectFit: 'cover' }} />
+                    <img src={product.images?.[0] || 'https://via.placeholder.com/48'} alt={product.name} style={{ width: 48, height: 48, borderRadius: '6px', objectFit: 'cover' }} />
                     <span style={{ fontWeight: 500, color: '#111' }}>{product.name}</span>
                   </td>
                   <td style={{ padding: '12px 16px' }}>

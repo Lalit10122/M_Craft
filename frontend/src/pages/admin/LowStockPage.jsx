@@ -39,7 +39,7 @@ const LowStockPage = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-lg)' }}>
         {products.map(product => (
           <div key={product.id} className="glass-panel" style={{ padding: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
-            <img src={product.firstImage} alt={product.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: '8px' }} />
+            <img src={product.images?.[0] || 'https://via.placeholder.com/80'} alt={product.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: '8px' }} />
             <div style={{ flex: 1 }}>
               <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem' }}>{product.name}</h4>
               <div style={{ display: 'inline-block', background: '#fff3cd', color: '#856404', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>

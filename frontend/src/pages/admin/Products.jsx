@@ -10,6 +10,8 @@ const Products = () => {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkFile, setBulkFile] = useState(null);
   const [uploadingBulk, setUploadingBulk] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [deletingBulk, setDeletingBulk] = useState(false);
   const navigate = useNavigate();
 
   const [page, setPage] = useState(1);
@@ -34,6 +36,7 @@ const Products = () => {
       const res = await api.get(`/admin/products?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`);
       setProducts(res.data.data.products);
       setTotalPages(res.data.data.pagination.pages);
+      setSelectedProducts([]); // Clear selection when page changes
     } catch (err) {
       console.error(err);
     } finally {
@@ -55,8 +58,42 @@ const Products = () => {
     try {
       await api.delete(`/admin/products/${id}`);
       setProducts(products.filter(p => p.id !== id));
+      setSelectedProducts(selectedProducts.filter(pId => pId !== id));
     } catch (err) {
       alert('Failed to delete product');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedProducts.length} selected products?`)) return;
+    
+    setDeletingBulk(true);
+    try {
+      const res = await api.post('/admin/products/bulk-delete', { productIds: selectedProducts });
+      alert(res.data.message);
+      setSelectedProducts([]);
+      fetchProducts();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete selected products');
+    } finally {
+      setDeletingBulk(false);
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedProducts(products.map(p => p.id));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const handleSelectProduct = (id) => {
+    if (selectedProducts.includes(id)) {
+      setSelectedProducts(selectedProducts.filter(pId => pId !== id));
+    } else {
+      setSelectedProducts([...selectedProducts, id]);
     }
   };
 
@@ -126,6 +163,16 @@ const Products = () => {
       <div className="admin-header-row">
         <h1 style={{ fontSize: '1.8rem', margin: 0 }}>Products</h1>
         <div style={{ display: 'flex', gap: '12px' }}>
+          {selectedProducts.length > 0 && (
+            <button 
+              onClick={handleBulkDelete} 
+              disabled={deletingBulk}
+              className="btn btn-outline" 
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', borderColor: '#fecaca', background: '#fef2f2' }}
+            >
+              <Trash2 size={18} /> {deletingBulk ? 'Deleting...' : `Delete Selected (${selectedProducts.length})`}
+            </button>
+          )}
           <button onClick={() => setShowBulkModal(true)} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Upload size={18} /> Bulk Upload (CSV)
           </button>
@@ -161,6 +208,14 @@ const Products = () => {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
           <thead style={{ background: '#f8f9fa', borderBottom: '2px solid #eaeaea' }}>
             <tr>
+              <th style={{ padding: '12px 16px', width: '40px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={products.length > 0 && selectedProducts.length === products.length}
+                  onChange={handleSelectAll}
+                  style={{ width: '16px', height: '16px', accentColor: 'var(--color-primary)' }}
+                />
+              </th>
               <th style={{ padding: '12px 16px', color: '#555', fontWeight: 600 }}>Product</th>
               <th style={{ padding: '12px 16px', color: '#555', fontWeight: 600 }}>Category</th>
               <th style={{ padding: '12px 16px', color: '#555', fontWeight: 600 }}>Price</th>
@@ -176,9 +231,17 @@ const Products = () => {
               <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#888' }}>No products found.</td></tr>
             ) : (
               products.map(product => (
-                <tr key={product.id} style={{ borderBottom: '1px solid #eaeaea' }}>
+                <tr key={product.id} style={{ borderBottom: '1px solid #eaeaea', background: selectedProducts.includes(product.id) ? '#f0f9ff' : 'transparent' }}>
+                  <td style={{ padding: '12px 16px' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedProducts.includes(product.id)}
+                      onChange={() => handleSelectProduct(product.id)}
+                      style={{ width: '16px', height: '16px', accentColor: 'var(--color-primary)' }}
+                    />
+                  </td>
                   <td style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={product.firstImage} alt={product.name} style={{ width: 48, height: 48, borderRadius: '6px', objectFit: 'cover' }} />
+                    <img src={product.images?.[0] || 'https://via.placeholder.com/48'} alt={product.name} style={{ width: 48, height: 48, borderRadius: '6px', objectFit: 'cover' }} />
                     <span style={{ fontWeight: 500, color: '#111' }}>{product.name}</span>
                   </td>
                   <td style={{ padding: '12px 16px' }}>{product.categories?.map(c => c.name).join(', ') || '-'}</td>

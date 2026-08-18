@@ -119,6 +119,38 @@ export const createProduct = async (req, res, next) => {
     }
 };
 
+export const bulkDeleteProducts = async (req, res, next) => {
+    try {
+        const { productIds } = req.body;
+        if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+            return errorResponse(res, { message: 'No products selected for deletion', statusCode: 400 });
+        }
+
+        // Before deleting products, we might need to delete related data if Prisma doesn't cascade
+        // Assuming Prisma is set up to cascade, we can just delete. 
+        // If it throws Foreign Key errors, we can update it later. Prisma typically has onDelete: Cascade for relations.
+        await prisma.product.deleteMany({
+            where: { id: { in: productIds } }
+        });
+
+        await prisma.auditLog.create({
+            data: {
+                action: 'PRODUCT_BULK_DELETED',
+                actorId: req.user.id,
+                actorEmail: req.user.email,
+                targetType: 'Product',
+                targetId: 'BULK',
+                metadata: { deletedCount: productIds.length },
+                ipAddress: req.ip
+            }
+        });
+
+        return successResponse(res, { message: `Successfully deleted ${productIds.length} products` });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const bulkUploadProducts = async (req, res, next) => {
     try {
         if (!req.file) {

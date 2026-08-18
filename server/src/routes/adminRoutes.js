@@ -9,7 +9,7 @@ import {
     addVariant, updateVariant, deleteVariant,
     addToCollection, removeFromCollection,
     createCollection, updateCollection, deleteCollection, getCollection, addProductsToCollection,
-    listPendingReviews, approveReview, bulkUploadProducts
+    listPendingReviews, approveReview, bulkUploadProducts, bulkDeleteProducts
 } from '../controllers/admin/adminProductController.js';
 
 import {
@@ -72,6 +72,7 @@ const csvUpload = multer({ storage: multer.memoryStorage() });
 // Products
 router.get('/products', adminListProducts);
 router.post('/products/bulk', csvUpload.single('file'), bulkUploadProducts);
+router.post('/products/bulk-delete', bulkDeleteProducts);
 router.get('/products/:id', getProduct);
 router.post('/products', createProduct);
 router.put('/products/:id', updateProduct);
