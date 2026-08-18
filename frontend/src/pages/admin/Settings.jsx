@@ -7,7 +7,8 @@ const Settings = () => {
     freeGiftThreshold: 0,
     codCap: 0,
     returnWindowDays: 7,
-    lowStockThreshold: 5
+    lowStockThreshold: 5,
+    global_banner_config: JSON.stringify({ isActive: false, showOnDesktop: true, showOnMobile: true, text: 'Free shipping on orders over ₹999', link: '/shop' })
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -19,7 +20,7 @@ const Settings = () => {
       try {
         const res = await api.get('/admin/settings');
         if (res.data.data) {
-          setSettings(res.data.data);
+          setSettings(prev => ({ ...prev, ...res.data.data }));
         }
       } catch (err) {
         console.error(err);
@@ -34,7 +35,11 @@ const Settings = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.put('/admin/settings', settings);
+      const promises = Object.entries(settings).map(([key, value]) => 
+        api.put('/admin/settings', { key, value: typeof value === 'object' ? JSON.stringify(value) : String(value) })
+      );
+      await Promise.all(promises);
+      
       setSaving(false);
       alert('Settings saved successfully!');
     } catch (err) {
@@ -63,6 +68,85 @@ const Settings = () => {
 
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
+        {/* Global Banner Settings */}
+        <section style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #eaeaea' }}>
+          <h3 style={{ margin: '0 0 16px 0', borderBottom: '1px solid #eaeaea', paddingBottom: '12px' }}>Global Announcement Banner</h3>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input 
+                type="checkbox" 
+                id="bannerActive"
+                checked={JSON.parse(settings.global_banner_config).isActive} 
+                onChange={e => {
+                  const current = JSON.parse(settings.global_banner_config);
+                  setSettings({...settings, global_banner_config: JSON.stringify({...current, isActive: e.target.checked})})
+                }} 
+                style={{ width: '18px', height: '18px' }}
+              />
+              <label htmlFor="bannerActive" style={{ fontSize: '1rem', fontWeight: 600 }}>Enable Global Banner</label>
+            </div>
+
+            {JSON.parse(settings.global_banner_config).isActive && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', background: '#f9f9f9', padding: '16px', borderRadius: '8px' }}>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={styles.label}>Banner Text</label>
+                  <input 
+                    type="text" 
+                    value={JSON.parse(settings.global_banner_config).text} 
+                    onChange={e => {
+                      const current = JSON.parse(settings.global_banner_config);
+                      setSettings({...settings, global_banner_config: JSON.stringify({...current, text: e.target.value})})
+                    }} 
+                    style={styles.input} 
+                    placeholder="e.g., Free shipping on orders over ₹999"
+                  />
+                </div>
+                
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={styles.label}>Banner Link (Optional)</label>
+                  <input 
+                    type="text" 
+                    value={JSON.parse(settings.global_banner_config).link} 
+                    onChange={e => {
+                      const current = JSON.parse(settings.global_banner_config);
+                      setSettings({...settings, global_banner_config: JSON.stringify({...current, link: e.target.value})})
+                    }} 
+                    style={styles.input} 
+                    placeholder="e.g., /shop"
+                  />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <input 
+                    type="checkbox" 
+                    id="showDesktop"
+                    checked={JSON.parse(settings.global_banner_config).showOnDesktop} 
+                    onChange={e => {
+                      const current = JSON.parse(settings.global_banner_config);
+                      setSettings({...settings, global_banner_config: JSON.stringify({...current, showOnDesktop: e.target.checked})})
+                    }} 
+                  />
+                  <label htmlFor="showDesktop">Show on Desktop Top</label>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <input 
+                    type="checkbox" 
+                    id="showMobile"
+                    checked={JSON.parse(settings.global_banner_config).showOnMobile} 
+                    onChange={e => {
+                      const current = JSON.parse(settings.global_banner_config);
+                      setSettings({...settings, global_banner_config: JSON.stringify({...current, showOnMobile: e.target.checked})})
+                    }} 
+                  />
+                  <label htmlFor="showMobile">Show on Mobile Slider (Drawer)</label>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* Promotion Settings */}
         <section style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #eaeaea' }}>
           <h3 style={{ margin: '0 0 16px 0', borderBottom: '1px solid #eaeaea', paddingBottom: '12px' }}>Promotions & Offers</h3>

@@ -6,7 +6,7 @@ import useCartStore from '../../store/useCartStore';
 import useAuthStore from '../../store/useAuthStore';
 import useWishlistStore from '../../store/useWishlistStore';
 import useThemeStore from '../../store/useThemeStore';
-import PromoBanner from '../product/PromoBanner';
+import GlobalBanner from './GlobalBanner';
 import api from '../../utils/api';
 import styles from './Header.module.css';
 
@@ -84,6 +84,7 @@ const Header = () => {
 
   return (
     <>
+      <GlobalBanner isMobileDrawer={false} />
       {/* Announcement Marquee */}
       <div className={`${styles.marqueeContainer} hide-mobile`}>
         <div className={styles.marqueeContent}>
@@ -299,9 +300,7 @@ const Header = () => {
               </div>
 
               {/* Promotional Slider inside Drawer */}
-              <div style={{ marginBottom: 'var(--spacing-lg)', borderRadius: '8px', overflow: 'hidden' }}>
-                <PromoBanner />
-              </div>
+              <GlobalBanner isMobileDrawer={true} />
 
               {/* Mobile Search */}
               <form onSubmit={handleSearchSubmit} style={{ marginBottom: 'var(--spacing-xl)' }}>
