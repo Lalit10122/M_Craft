@@ -104,19 +104,28 @@ export const bulkUploadProducts = async (req, res, next) => {
                             continue;
                         }
 
-                        const category = await prisma.category.findUnique({ where: { slug: categorySlug } });
+                        let category = await prisma.category.findUnique({ where: { slug: categorySlug } });
                         if (!category) {
-                            errors.push(`Row with Name "${Name}" has invalid Category Slug "${categorySlug}".`);
-                            continue;
+                            // Auto-create category if missing
+                            const categoryName = categorySlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                            category = await prisma.category.create({
+                                data: { name: categoryName, slug: categorySlug }
+                            });
                         }
 
                         let collectionIds = [];
                         if (collectionSlugsStr) {
                             const slugs = collectionSlugsStr.split(',').map(s => s.trim()).filter(Boolean);
                             for (const cSlug of slugs) {
-                                const col = await prisma.collection.findUnique({ where: { slug: cSlug } });
-                                if (col) collectionIds.push(col.id);
-                                else errors.push(`Row with Name "${Name}" has invalid Collection Slug "${cSlug}".`);
+                                let col = await prisma.collection.findUnique({ where: { slug: cSlug } });
+                                if (!col) {
+                                    // Auto-create collection if missing
+                                    const colName = cSlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                                    col = await prisma.collection.create({
+                                        data: { name: colName, slug: cSlug }
+                                    });
+                                }
+                                collectionIds.push(col.id);
                             }
                         }
 
