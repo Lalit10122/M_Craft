@@ -3,6 +3,8 @@ import { successResponse, errorResponse } from '../../utils/apiResponse.js';
 import { deleteFromS3 } from '../../services/s3Service.js';
 import { slugify } from '../../utils/slugify.js';
 import { z } from 'zod';
+import csv from 'csv-parser';
+import { Readable } from 'stream';
 
 export const getProduct = async (req, res, next) => {
     try {
@@ -58,6 +60,89 @@ export const createProduct = async (req, res, next) => {
         });
 
         return successResponse(res, { data: product, message: 'Product created successfully', statusCode: 201 });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const bulkUploadProducts = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return errorResponse(res, { message: 'No CSV file uploaded', statusCode: 400 });
+        }
+
+        const results = [];
+        const errors = [];
+
+        const stream = Readable.from(req.file.buffer);
+
+        stream.pipe(csv())
+            .on('data', (data) => results.push(data))
+            .on('end', async () => {
+                let successCount = 0;
+                for (const row of results) {
+                    try {
+                        const {
+                            Name, Description, 'Category Slug': categorySlug,
+                            Material, Color, 'Base Price': basePriceStr,
+                            MRP: mrpStr, 'Stock Quantity': stockQtyStr
+                        } = row;
+
+                        if (!Name || !categorySlug || !basePriceStr || !mrpStr) {
+                            errors.push(`Row with Name "${Name || 'Unknown'}" is missing required fields.`);
+                            continue;
+                        }
+
+                        const category = await prisma.category.findUnique({ where: { slug: categorySlug } });
+                        if (!category) {
+                            errors.push(`Row with Name "${Name}" has invalid Category Slug "${categorySlug}".`);
+                            continue;
+                        }
+
+                        let slug = slugify(Name);
+                        let existing = await prisma.product.findUnique({ where: { slug } });
+                        if (existing) {
+                            slug = `${slug}-${Math.floor(Math.random() * 10000)}`;
+                        }
+
+                        await prisma.product.create({
+                            data: {
+                                name: Name,
+                                slug,
+                                description: Description || '',
+                                categoryId: category.id,
+                                material: Material || 'Unknown',
+                                color: Color || 'Unknown',
+                                basePrice: parseFloat(basePriceStr),
+                                mrp: parseFloat(mrpStr),
+                                stockQty: parseInt(stockQtyStr, 10) || 0,
+                                isActive: true,
+                            }
+                        });
+                        successCount++;
+                    } catch (err) {
+                        errors.push(`Failed to process row "${row.Name}": ${err.message}`);
+                    }
+                }
+
+                if (successCount > 0) {
+                    await prisma.auditLog.create({
+                        data: {
+                            action: 'PRODUCT_BULK_UPLOAD',
+                            actorId: req.user.id,
+                            actorEmail: req.user.email,
+                            targetType: 'Product',
+                            targetId: 'BULK',
+                            metadata: { successCount, errorCount: errors.length }
+                        }
+                    });
+                }
+
+                return successResponse(res, { 
+                    message: `Successfully imported ${successCount} products. ${errors.length > 0 ? 'Some rows failed.' : ''}`,
+                    data: { successCount, errors }
+                });
+            });
     } catch (error) {
         next(error);
     }

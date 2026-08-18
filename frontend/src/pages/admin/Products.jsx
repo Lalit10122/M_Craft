@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../utils/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Download, Upload, X } from 'lucide-react';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkFile, setBulkFile] = useState(null);
+  const [uploadingBulk, setUploadingBulk] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,6 +47,45 @@ const Products = () => {
     }
   };
 
+  const handleBulkUpload = async (e) => {
+    e.preventDefault();
+    if (!bulkFile) return alert('Please select a CSV file first');
+    
+    setUploadingBulk(true);
+    const formData = new FormData();
+    formData.append('file', bulkFile);
+    
+    try {
+      const res = await api.post('/admin/products/bulk', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      alert(res.data.message);
+      setShowBulkModal(false);
+      setBulkFile(null);
+      fetchProducts();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Bulk upload failed');
+    } finally {
+      setUploadingBulk(false);
+    }
+  };
+
+  const downloadTemplate = () => {
+    const headers = ['Name', 'Description', 'Category Slug', 'Material', 'Color', 'Base Price', 'MRP', 'Stock Quantity'];
+    const sampleData = ['Gold Necklace', 'A beautiful 18k gold necklace', 'necklaces', 'Gold', 'Gold', '15000', '18000', '10'];
+    const csvContent = headers.join(',') + '\n' + sampleData.join(',');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'malkincraft_product_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.category?.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -53,9 +95,14 @@ const Products = () => {
     <div>
       <div className="admin-header-row">
         <h1 style={{ fontSize: '1.8rem', margin: 0 }}>Products</h1>
-        <Link to="/admin/products/new" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Plus size={18} /> Add Product
-        </Link>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={() => setShowBulkModal(true)} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Upload size={18} /> Bulk Upload (CSV)
+          </button>
+          <Link to="/admin/products/new" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Plus size={18} /> Add Product
+          </Link>
+        </div>
       </div>
 
       <div style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #eaeaea' }}>
@@ -151,6 +198,58 @@ const Products = () => {
         </table>
         </div>
       </div>
+
+      {showBulkModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', 
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '12px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Bulk Upload Products</h2>
+              <button onClick={() => setShowBulkModal(false)} className="iconBtn" style={{ border: 'none', background: 'none' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ background: '#f0f9ff', color: '#0369a1', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
+              <h4 style={{ margin: '0 0 8px 0' }}>Instructions</h4>
+              <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>
+                Please upload a CSV file with the following exact columns: 
+                <strong> Name, Description, Category Slug, Material, Color, Base Price, MRP, Stock Quantity</strong>.
+                <br /><br />
+                <em>Note: "Category Slug" must match an existing category (e.g., necklaces, earrings).</em>
+              </p>
+              <button 
+                onClick={downloadTemplate} 
+                className="btn btn-outline" 
+                style={{ marginTop: '16px', borderColor: '#0369a1', color: '#0369a1', background: 'white' }}
+              >
+                <Download size={16} /> Download Template
+              </button>
+            </div>
+
+            <form onSubmit={handleBulkUpload}>
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>Select CSV File</label>
+                <input 
+                  type="file" 
+                  accept=".csv"
+                  onChange={e => setBulkFile(e.target.files[0])}
+                  style={{ width: '100%', padding: '12px', border: '1px dashed #ccc', borderRadius: '8px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button type="button" onClick={() => setShowBulkModal(false)} className="btn btn-outline">Cancel</button>
+                <button type="submit" disabled={uploadingBulk || !bulkFile} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {uploadingBulk ? 'Uploading...' : <><Upload size={18} /> Upload Products</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

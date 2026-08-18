@@ -9,7 +9,7 @@ import {
     addVariant, updateVariant, deleteVariant,
     addToCollection, removeFromCollection,
     createCollection, updateCollection, deleteCollection,
-    listPendingReviews, approveReview
+    listPendingReviews, approveReview, bulkUploadProducts
 } from '../controllers/admin/adminProductController.js';
 
 import {
@@ -62,7 +62,11 @@ const router = Router();
 // Apply auth and admin check to all routes
 router.use(authenticate, authorizeAdmin);
 
+import multer from 'multer';
+const csvUpload = multer({ storage: multer.memoryStorage() });
+
 // Products
+router.post('/products/bulk', csvUpload.single('file'), bulkUploadProducts);
 router.get('/products/:id', getProduct);
 router.post('/products', createProduct);
 router.put('/products/:id', updateProduct);
