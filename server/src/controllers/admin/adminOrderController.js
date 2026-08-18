@@ -133,7 +133,20 @@ export const updateOrderStatus = async (req, res, next) => {
         } else if (status === 'OUT_FOR_DELIVERY') {
             notifyOutForDelivery(updatedOrder, updatedOrder.user).catch(console.error);
         } else if (status === 'DELIVERED') {
-            notifyOrderDelivered(updatedOrder, updatedOrder.user).catch(console.error);
+            (async () => {
+                let currentOrder = updatedOrder;
+                if (!currentOrder.invoiceUrl) {
+                    try {
+                        const inv = await generateInvoice(id);
+                        if (inv && inv.invoiceUrl) {
+                            currentOrder = { ...currentOrder, invoiceUrl: inv.invoiceUrl, invoiceNumber: inv.invoiceNumber };
+                        }
+                    } catch (e) {
+                        console.error('Failed to generate invoice before delivery email:', e);
+                    }
+                }
+                notifyOrderDelivered(currentOrder, currentOrder.user).catch(console.error);
+            })();
         }
 
         return successResponse(res, { data: updatedOrder, message: 'Order status updated successfully' });

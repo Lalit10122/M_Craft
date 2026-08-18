@@ -20,6 +20,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const clearCart = useCartStore(state => state.clearCart);
+  const isUnverifiedLocal = user?.authProvider === 'LOCAL' && !user?.emailVerified;
   
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
@@ -250,6 +251,27 @@ const Checkout = () => {
 
   const isCodDisabled = deliveryInfo && !deliveryInfo.codAvailable;
   const isCodCapped = cartTotal > COD_CAP;
+
+  if (isUnverifiedLocal) {
+    return (
+      <div className="container" style={{ padding: '60px 20px', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
+        <div style={{ width: '80px', height: '80px', background: '#fee2e2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+          <AlertTriangle size={40} color="#dc2626" />
+        </div>
+        <h1 style={{ fontSize: '2rem', marginBottom: '16px' }}>Verify Your Email</h1>
+        <p style={{ color: '#666', fontSize: '1.1rem', marginBottom: '32px', lineHeight: 1.6 }}>
+          For security reasons, we require all customers to verify their email address before placing an order.
+        </p>
+        <button 
+          onClick={() => navigate('/verify-email')} 
+          className="btn btn-primary"
+          style={{ padding: '16px 32px', fontSize: '1.1rem', borderRadius: '8px' }}
+        >
+          Verify Email Now
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ maxWidth: '800px' }}>

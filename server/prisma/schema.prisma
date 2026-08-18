@@ -61,6 +61,7 @@ model User {
   id                    String               @id @default(cuid())
   name                  String
   email                 String               @unique
+  emailVerified         Boolean              @default(false)
   passwordHash          String?
   authProvider          String               @default("LOCAL")
   googleId              String?              @unique
@@ -85,7 +86,31 @@ model User {
   reviews               Review[]
   refreshTokens         RefreshToken[]
   passwordResetTokens   PasswordResetToken[]
+  emailVerifications    EmailVerificationCode[]
   recentlyViewed        RecentlyViewed[]
+  deviceLogins          DeviceLogin[]
+}
+
+model EmailVerificationCode {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  codeHash  String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model DeviceLogin {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  ipAddress String
+  userAgent String
+  lastSeen  DateTime @default(now())
+
+  @@unique([userId, ipAddress, userAgent])
 }
 
 model Category {

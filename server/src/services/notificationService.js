@@ -1,15 +1,27 @@
 import {
+  sendWelcomeEmail,
+  sendNewLoginAlertEmail,
+  sendPasswordResetOTP,
+  sendPasswordChangedEmail,
+  sendAccountLockedEmail,
+  send2FAEnabledEmail,
+  sendCompleteProfileNudgeEmail,
+  sendBackInStockEmail,
   sendOrderConfirmationEmail,
   sendOrderPackedEmail,
   sendOrderShippedEmail,
   sendOutForDeliveryEmail,
   sendOrderDeliveredEmail,
   sendOrderCancelledEmail,
+  sendReturnRequestReceivedEmail,
   sendReturnApprovedEmail,
   sendReturnRejectedEmail,
   sendRefundProcessedEmail,
   sendAbandonedCartEmail,
-  sendLowStockDigestEmail
+  sendLowStockDigestEmail,
+  sendReviewSubmittedEmail,
+  sendReviewApprovedEmail,
+  sendWishlistPriceDropEmail
 } from './emailService.js';
 import { prisma } from '../config/db.js';
 
@@ -59,6 +71,7 @@ export const notifyOrderShipped = async (order, user) => {
 
 export const notifyOutForDelivery = async (order, user) => {
   try {
+    await sendOutForDeliveryEmail(user.email, order);
     if (user.phone) {
       await sendSms(user.phone, `Your order #${order.id} is out for delivery!`);
     }
@@ -80,6 +93,14 @@ export const notifyOrderCancelled = async (order, user) => {
     await sendOrderCancelledEmail(user.email, order);
   } catch (error) {
     console.error(`Error in notifyOrderCancelled for order ${order.id}:`, error);
+  }
+};
+
+export const notifyReturnRequestReceived = async (order, user) => {
+  try {
+    await sendReturnRequestReceivedEmail(user.email, order);
+  } catch (error) {
+    console.error(`Error in notifyReturnRequestReceived for order ${order.id}:`, error);
   }
 };
 
@@ -140,4 +161,19 @@ export const checkAndNotifyLowStock = async (productId) => {
   } catch (error) {
     console.error(`Error in checkAndNotifyLowStock for product ${productId}:`, error);
   }
+};
+
+// Expose direct wrappers for auth and other features that don't need complex internal logic
+export {
+  sendWelcomeEmail,
+  sendNewLoginAlertEmail,
+  sendPasswordResetOTP,
+  sendPasswordChangedEmail,
+  sendAccountLockedEmail,
+  send2FAEnabledEmail,
+  sendCompleteProfileNudgeEmail,
+  sendBackInStockEmail,
+  sendReviewSubmittedEmail,
+  sendReviewApprovedEmail,
+  sendWishlistPriceDropEmail
 };

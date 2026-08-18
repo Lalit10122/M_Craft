@@ -1,7 +1,7 @@
 import { prisma } from '../config/db.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 import { generateAccessToken, generateRefreshToken, generateTempToken } from '../utils/generateToken.js';
-import { sendPasswordResetEmail, sendPasswordChangedEmail, sendAccountLockedEmail } from '../services/emailService.js';
+import { sendPasswordChangedEmail, sendAccountLockedEmail, sendWelcomeEmail, sendNewLoginAlertEmail, send2FAEnabledEmail, sendEmailVerificationOTP, sendPasswordResetOTP } from '../services/emailService.js';
 import { generateOtp, sendOtp, storeOtp, verifyStoredOtp } from '../services/otpService.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -75,14 +75,30 @@ export const register = async (req, res, next) => {
         email,
         phone,
         passwordHash,
-        authProvider: 'LOCAL'
+        authProvider: 'LOCAL',
+        emailVerified: false
       }
     });
+    
+    // Auto-generate and send email verification OTP
+    const otpCode = generateOtp();
+    const codeHash = await bcrypt.hash(otpCode, 6);
+    await prisma.emailVerificationCode.create({
+      data: {
+        userId: user.id,
+        codeHash,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+      }
+    });
+    sendEmailVerificationOTP(user.email, otpCode).catch(console.error);
     
     const accessToken = generateAccessToken({ id: user.id, role: user.role });
     const refreshTokenStr = await createAndStoreRefreshToken(user.id, user.role);
     
     setRefreshTokenCookie(res, refreshTokenStr);
+    
+    // Fire and forget welcome email
+    sendWelcomeEmail(user.email, user.name).catch(console.error);
     
     return successResponse(res, { 
       statusCode: 201, 
@@ -158,6 +174,29 @@ export const login = async (req, res, next) => {
     
     setRefreshTokenCookie(res, refreshTokenStr);
     
+    // Check DeviceLogin
+    const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown IP';
+    const userAgent = req.headers['user-agent'] || 'Unknown Browser/Device';
+    
+    const existingDevice = await prisma.deviceLogin.findUnique({
+      where: {
+        userId_ipAddress_userAgent: { userId: user.id, ipAddress, userAgent }
+      }
+    });
+
+    if (existingDevice) {
+      await prisma.deviceLogin.update({
+        where: { id: existingDevice.id },
+        data: { lastSeen: new Date() }
+      });
+    } else {
+      await prisma.deviceLogin.create({
+        data: { userId: user.id, ipAddress, userAgent }
+      });
+      // Fire and forget login alert
+      sendNewLoginAlertEmail(user.email, ipAddress, new Date().toLocaleString(), userAgent).catch(console.error);
+    }
+    
     return successResponse(res, { 
       statusCode: 200, 
       message: 'Login successful', 
@@ -195,7 +234,7 @@ export const googleSignIn = async (req, res, next) => {
       if (!user.googleId) {
         user = await prisma.user.update({
           where: { id: user.id },
-          data: { googleId }
+          data: { googleId, emailVerified: true }
         });
       }
     } else {
@@ -206,6 +245,7 @@ export const googleSignIn = async (req, res, next) => {
           googleId,
           avatarUrl: picture,
           authProvider: 'GOOGLE',
+          emailVerified: true,
           passwordHash: null,
           phone: null
         }
@@ -216,6 +256,28 @@ export const googleSignIn = async (req, res, next) => {
     const refreshTokenStr = await createAndStoreRefreshToken(user.id, user.role);
     
     setRefreshTokenCookie(res, refreshTokenStr);
+    
+    // Check DeviceLogin for Google SignIn
+    const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown IP';
+    const userAgent = req.headers['user-agent'] || 'Unknown Browser/Device';
+    
+    const existingDevice = await prisma.deviceLogin.findUnique({
+      where: {
+        userId_ipAddress_userAgent: { userId: user.id, ipAddress, userAgent }
+      }
+    });
+
+    if (existingDevice) {
+      await prisma.deviceLogin.update({
+        where: { id: existingDevice.id },
+        data: { lastSeen: new Date() }
+      });
+    } else {
+      await prisma.deviceLogin.create({
+        data: { userId: user.id, ipAddress, userAgent }
+      });
+      sendNewLoginAlertEmail(user.email, ipAddress, new Date().toLocaleString(), userAgent).catch(console.error);
+    }
     
     return successResponse(res, {
       statusCode: 200,
@@ -347,23 +409,24 @@ export const forgotPassword = async (req, res, next) => {
     
     const user = await prisma.user.findUnique({ where: { email } });
     
-    if (user && user.authProvider === 'LOCAL') {
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      const hash = crypto.createHash('sha256').update(resetToken).digest('hex');
-      
-      await prisma.passwordResetToken.create({
-        data: {
-          tokenHash: hash,
-          userId: user.id,
-          expiresAt: new Date(Date.now() + 15 * 60 * 1000)
-        }
-      });
-      
-      const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
-      await sendPasswordResetEmail(user.email, resetUrl);
+    if (!user || user.authProvider !== 'LOCAL') {
+      return errorResponse(res, { statusCode: 404, message: 'No account found with this email address.' });
     }
     
-    return successResponse(res, { statusCode: 200, message: 'If an account with that email exists, we have sent a password reset link.', data: {} });
+    const otpCode = generateOtp();
+    const hash = await bcrypt.hash(otpCode, 6);
+    
+    await prisma.passwordResetToken.create({
+      data: {
+        tokenHash: hash,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000)
+      }
+    });
+    
+    await sendPasswordResetOTP(user.email, otpCode);
+    
+    return successResponse(res, { statusCode: 200, message: 'Password reset code sent successfully.', data: {} });
   } catch (error) {
     next(error);
   }
@@ -372,41 +435,57 @@ export const forgotPassword = async (req, res, next) => {
 export const resetPassword = async (req, res, next) => {
   try {
     const schema = z.object({
-      token: z.string(),
+      email: z.string().email(),
+      otp: z.string().length(6),
       newPassword: z.string().min(8).regex(/^(?=.*[a-zA-Z])(?=.*\d)/)
     });
     
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) return errorResponse(res, { statusCode: 400, message: 'Validation failed' });
     
-    const { token, newPassword } = parsed.data;
-    const hash = crypto.createHash('sha256').update(token).digest('hex');
+    const { email, otp, newPassword } = parsed.data;
     
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Return a generic error to prevent enumeration, or just say invalid
+      return errorResponse(res, { statusCode: 400, message: 'Invalid or expired reset code' });
+    }
+
     const resetRecord = await prisma.passwordResetToken.findFirst({
-      where: { tokenHash: hash, used: false, expiresAt: { gt: new Date() } },
-      include: { user: true }
+      where: { userId: user.id, used: false, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' }
     });
     
-    if (!resetRecord) return errorResponse(res, { statusCode: 400, message: 'Invalid or expired reset token' });
+    if (!resetRecord) {
+      return errorResponse(res, { statusCode: 400, message: 'Invalid or expired reset code' });
+    }
+    
+    const isMatch = await bcrypt.compare(otp, resetRecord.tokenHash);
+    if (!isMatch) {
+      return errorResponse(res, { statusCode: 400, message: 'Invalid reset code' });
+    }
     
     const passwordHash = await bcrypt.hash(newPassword, 12);
     
     await prisma.$transaction([
       prisma.user.update({
-        where: { id: resetRecord.userId },
+        where: { id: user.id },
         data: { passwordHash }
       }),
       prisma.passwordResetToken.update({
         where: { id: resetRecord.id },
         data: { used: true }
-      }),
-      prisma.refreshToken.updateMany({
-        where: { userId: resetRecord.userId },
-        data: { revoked: true }
       })
     ]);
     
-    await sendPasswordChangedEmail(resetRecord.user.email);
+    // Revoke all existing refresh tokens
+    await prisma.refreshToken.updateMany({
+      where: { userId: user.id, revoked: false },
+      data: { revoked: true }
+    });
+    
+    sendPasswordChangedEmail(user.email).catch(console.error);
+    
     return successResponse(res, { statusCode: 200, message: 'Password reset successful', data: {} });
   } catch (error) {
     next(error);
@@ -631,6 +710,9 @@ export const verifySetup2FA = async (req, res, next) => {
     const refreshTokenStr = await createAndStoreRefreshToken(user.id, user.role);
     setRefreshTokenCookie(res, refreshTokenStr);
     
+    // Send 2FA Enabled Email
+    send2FAEnabledEmail(user.email, 'enabled').catch(console.error);
+    
     return successResponse(res, { 
       statusCode: 200, 
       message: '2FA successfully enabled', 
@@ -670,6 +752,9 @@ export const disable2FA = async (req, res, next) => {
     
     console.log(`User ${user.email} disabled 2FA at ${new Date().toISOString()}`);
     
+    // Send 2FA Disabled Email
+    send2FAEnabledEmail(user.email, 'disabled').catch(console.error);
+    
     return successResponse(res, { statusCode: 200, message: '2FA disabled successfully', data: {} });
   } catch (error) {
     next(error);
@@ -693,6 +778,88 @@ export const exportData = async (req, res, next) => {
       message: 'User data exported', 
       data: sanitizeUser(user) 
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const sendVerificationEmailHandler = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return errorResponse(res, { statusCode: 404, message: 'User not found' });
+    if (user.emailVerified) return errorResponse(res, { statusCode: 400, message: 'Email already verified' });
+    
+    // Check cooldown
+    const lastCode = await prisma.emailVerificationCode.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (lastCode) {
+      const msSinceLastCode = Date.now() - new Date(lastCode.createdAt).getTime();
+      if (msSinceLastCode < 60 * 1000) {
+        return errorResponse(res, { statusCode: 429, message: 'Please wait 60 seconds before requesting another code' });
+      }
+    }
+    
+    const otpCode = generateOtp();
+    const codeHash = await bcrypt.hash(otpCode, 6);
+    
+    await prisma.emailVerificationCode.create({
+      data: {
+        userId,
+        codeHash,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+      }
+    });
+    
+    await sendEmailVerificationOTP(user.email, otpCode);
+    return successResponse(res, { statusCode: 200, message: 'Verification code sent' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyEmailHandler = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    if (!code || typeof code !== 'string') return errorResponse(res, { statusCode: 400, message: 'Code is required' });
+    
+    const userId = req.user.id;
+    const activeCode = await prisma.emailVerificationCode.findFirst({
+      where: { userId, verified: false, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (!activeCode) return errorResponse(res, { statusCode: 400, message: 'No active verification code found or expired' });
+    
+    if (activeCode.attempts >= 5) {
+      return errorResponse(res, { statusCode: 429, message: 'Too many failed attempts. Please request a new code.' });
+    }
+    
+    const isMatch = await bcrypt.compare(code, activeCode.codeHash);
+    
+    if (!isMatch) {
+      await prisma.emailVerificationCode.update({
+        where: { id: activeCode.id },
+        data: { attempts: { increment: 1 } }
+      });
+      return errorResponse(res, { statusCode: 400, message: 'Invalid code' });
+    }
+    
+    await prisma.$transaction([
+      prisma.emailVerificationCode.update({
+        where: { id: activeCode.id },
+        data: { verified: true }
+      }),
+      prisma.user.update({
+        where: { id: userId },
+        data: { emailVerified: true }
+      })
+    ]);
+    
+    return successResponse(res, { statusCode: 200, message: 'Email verified successfully' });
   } catch (error) {
     next(error);
   }

@@ -4,7 +4,7 @@ import { razorpay } from '../config/razorpay.js';
 import { z } from 'zod';
 import { createRazorpayOrder, verifyPaymentSignature, verifyWebhookSignature } from '../services/paymentService.js';
 import { generateInvoice } from '../services/invoiceService.js';
-import { notifyOrderConfirmed, notifyOrderCancelled, checkAndNotifyLowStock } from '../services/notificationService.js';
+import { notifyOrderConfirmed, notifyOrderCancelled, checkAndNotifyLowStock, notifyReturnRequestReceived } from '../services/notificationService.js';
 import { getBestActivePromotion, calculateBuyXGetYDiscount, checkFreeGiftEligibility } from '../services/priceService.js';
 
 const orderSchema = z.object({
@@ -27,6 +27,10 @@ export const createOrder = async (req, res) => {
     const validatedData = orderSchema.parse(req.body);
     const { items, addressId, couponCode, isGift, giftMessage, paymentMethod } = validatedData;
     const userId = req.user.id;
+
+    if (req.user.authProvider === 'LOCAL' && !req.user.emailVerified) {
+      return errorResponse(res, { statusCode: 403, message: 'Please verify your email before placing an order' });
+    }
 
     const address = await prisma.address.findFirst({ where: { id: addressId, userId } });
     if (!address) return errorResponse(res, 'Address not found', 404);
@@ -422,6 +426,8 @@ export const createReturnRequest = async (req, res) => {
         status: 'REQUESTED'
       }
     });
+
+    notifyReturnRequestReceived(order, req.user).catch(console.error);
 
     return successResponse(res, 'Return request created successfully', { returnRequest }, 201);
   } catch (error) {

@@ -26,7 +26,11 @@ const Register = () => {
       const { user, accessToken: token } = res.data.data;
       
       loginAction(user, token);
-      navigate(from, { replace: true });
+      if (user.authProvider === 'LOCAL' && !user.emailVerified) {
+        navigate('/verify-email', { state: { from } });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (err) {
       if (err.response?.data?.errors?.fieldErrors) {
         const firstErrorKey = Object.keys(err.response.data.errors.fieldErrors)[0];

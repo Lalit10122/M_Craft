@@ -13,6 +13,8 @@ import {
   setPassword,
   sendOtpHandler,
   verifyOtpHandler,
+  sendVerificationEmailHandler,
+  verifyEmailHandler,
   verify2FA,
   setup2FA,
   verifySetup2FA,
@@ -50,6 +52,8 @@ router.post('/reset-password', resetPassword);
 router.post('/set-password', authenticate, setPassword);
 router.post('/send-otp', authenticate, otpLimiter, sendOtpHandler);
 router.post('/verify-otp', authenticate, verifyOtpHandler);
+router.post('/send-verification-email', authenticate, otpLimiter, sendVerificationEmailHandler);
+router.post('/verify-email', authenticate, verifyEmailHandler);
 router.post('/2fa/verify', verify2FA);
 router.post('/admin/2fa/setup', setup2FA);
 router.post('/admin/2fa/verify-setup', verifySetup2FA);

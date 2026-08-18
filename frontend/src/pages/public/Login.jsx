@@ -97,6 +97,11 @@ const Login = () => {
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
           </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <Link to="/forgot-password" style={{ color: 'var(--color-primary)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500 }}>
+              Forgot Password?
+            </Link>
+          </div>
         </div>
 
         <button 

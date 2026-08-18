@@ -1,10 +1,11 @@
 import React, { Suspense, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Link } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { HelmetProvider } from 'react-helmet-async';
 import { ToastProvider } from './components/common/ToastContext';
 import api from './utils/api';
 import useThemeStore from './store/useThemeStore';
+import useAuthStore from './store/useAuthStore';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageTransition from './components/layout/PageTransition';
@@ -37,6 +38,8 @@ const CampaignLandingPage = React.lazy(() => import('./pages/public/CampaignLand
 const BoxBuilderPage = React.lazy(() => import('./pages/public/BoxBuilderPage'));
 const StaticPage = React.lazy(() => import('./pages/public/StaticPage'));
 const FaqPage = React.lazy(() => import('./pages/public/FaqPage'));
+const VerifyEmail = React.lazy(() => import('./pages/public/VerifyEmail'));
+const ForgotPassword = React.lazy(() => import('./pages/public/ForgotPassword'));
 
 // Lazy Loaded Admin Pages
 const AdminLogin = React.lazy(() => import('./pages/admin/AdminLogin'));
@@ -71,19 +74,30 @@ const SupplyChainDashboard = React.lazy(() => import('./pages/admin/dashboards/S
 const CRMDashboard = React.lazy(() => import('./pages/admin/dashboards/CRMDashboard'));
 
 // Layout wrapper for customer facing pages
-const StoreLayout = ({ children }) => (
-  <div className="store-layout">
-    <AnnouncementBar />
-    <Header />
-    <CartDrawer />
-    <main className="main-content" style={{ minHeight: 'calc(100vh - 200px)', padding: 'var(--spacing-xl) 0', overflow: 'hidden' }}>
-      <Suspense fallback={<div style={{ textAlign: 'center', padding: 'var(--spacing-xxl)' }}>Loading...</div>}>
-        {children}
-      </Suspense>
-    </main>
-    <Footer />
-  </div>
-);
+const StoreLayout = ({ children }) => {
+  const { user } = useAuthStore();
+  const showVerificationBanner = user && user.authProvider === 'LOCAL' && !user.emailVerified;
+
+  return (
+    <div className="store-layout">
+      <AnnouncementBar />
+      {showVerificationBanner && (
+        <div style={{ background: '#fef3c7', color: '#92400e', padding: '10px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+          <span>Please verify your email address to unlock checkout.</span>
+          <Link to="/verify-email" style={{ color: '#92400e', textDecoration: 'underline', fontWeight: 600 }}>Verify Now</Link>
+        </div>
+      )}
+      <Header />
+      <CartDrawer />
+      <main className="main-content" style={{ minHeight: 'calc(100vh - 200px)', padding: 'var(--spacing-xl) 0', overflow: 'hidden' }}>
+        <Suspense fallback={<div style={{ textAlign: 'center', padding: 'var(--spacing-xxl)' }}>Loading...</div>}>
+          {children}
+        </Suspense>
+      </main>
+      <Footer />
+    </div>
+  );
+};
 
 const AboutUs = React.lazy(() => import('./pages/public/AboutUs'));
 const AnimatedRoutes = () => {
@@ -103,6 +117,8 @@ const AnimatedRoutes = () => {
         <Route path="/login" element={<StoreLayout><PageTransition><Login /></PageTransition></StoreLayout>} />
         <Route path="/register" element={<StoreLayout><PageTransition><Register /></PageTransition></StoreLayout>} />
         <Route path="/complete-profile" element={<StoreLayout><PageTransition><CompleteProfile /></PageTransition></StoreLayout>} />
+        <Route path="/verify-email" element={<StoreLayout><PageTransition><VerifyEmail /></PageTransition></StoreLayout>} />
+        <Route path="/forgot-password" element={<StoreLayout><PageTransition><ForgotPassword /></PageTransition></StoreLayout>} />
         <Route path="/checkout" element={<CustomerProtectedRoute><StoreLayout><Checkout /></StoreLayout></CustomerProtectedRoute>} />
         <Route path="/order-confirmation" element={<StoreLayout><OrderConfirmation /></StoreLayout>} />
         <Route path="/campaign/:id" element={<StoreLayout><CampaignLandingPage /></StoreLayout>} />
