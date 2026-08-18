@@ -47,11 +47,14 @@ const Products = () => {
     }
   };
 
+  const [bulkResult, setBulkResult] = useState(null);
+
   const handleBulkUpload = async (e) => {
     e.preventDefault();
     if (!bulkFile) return alert('Please select a CSV file first');
     
     setUploadingBulk(true);
+    setBulkResult(null); // Reset previous results
     const formData = new FormData();
     formData.append('file', bulkFile);
     
@@ -59,15 +62,29 @@ const Products = () => {
       const res = await api.post('/admin/products/bulk', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      alert(res.data.message);
-      setShowBulkModal(false);
-      setBulkFile(null);
+      setBulkResult({
+        success: true,
+        message: res.data.message,
+        successCount: res.data.data?.successCount || 0,
+        errors: res.data.data?.errors || []
+      });
       fetchProducts();
     } catch (err) {
-      alert(err.response?.data?.message || 'Bulk upload failed');
+      setBulkResult({
+        success: false,
+        message: err.response?.data?.message || 'Bulk upload failed',
+        successCount: err.response?.data?.data?.successCount || 0,
+        errors: err.response?.data?.data?.errors || []
+      });
     } finally {
       setUploadingBulk(false);
     }
+  };
+
+  const handleCloseBulkModal = () => {
+    setShowBulkModal(false);
+    setBulkFile(null);
+    setBulkResult(null);
   };
 
   const downloadTemplate = () => {
@@ -207,7 +224,7 @@ const Products = () => {
           <div style={{ background: 'white', padding: '32px', borderRadius: '12px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Bulk Upload Products</h2>
-              <button onClick={() => setShowBulkModal(false)} className="iconBtn" style={{ border: 'none', background: 'none' }}>
+              <button onClick={handleCloseBulkModal} className="iconBtn" style={{ border: 'none', background: 'none' }}>
                 <X size={24} />
               </button>
             </div>
@@ -241,12 +258,60 @@ const Products = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button type="button" onClick={() => setShowBulkModal(false)} className="btn btn-outline">Cancel</button>
+                <button type="button" onClick={handleCloseBulkModal} className="btn btn-outline">Cancel</button>
                 <button type="submit" disabled={uploadingBulk || !bulkFile} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {uploadingBulk ? 'Uploading...' : <><Upload size={18} /> Upload Products</>}
                 </button>
               </div>
             </form>
+
+            {bulkResult && (
+              <div style={{ 
+                marginTop: '24px', 
+                padding: '16px', 
+                borderRadius: '8px',
+                border: `1px solid ${bulkResult.success ? '#bbf7d0' : '#fecaca'}`,
+                background: bulkResult.success ? '#f0fdf4' : '#fef2f2'
+              }}>
+                <h4 style={{ margin: '0 0 12px 0', color: bulkResult.success ? '#166534' : '#991b1b' }}>
+                  Upload Result
+                </h4>
+                <p style={{ margin: '0 0 8px 0', fontWeight: 500, color: '#333' }}>
+                  {bulkResult.message}
+                </p>
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '0.9rem' }}>
+                  <span style={{ color: '#166534', fontWeight: 600 }}>
+                    Successfully Imported: {bulkResult.successCount}
+                  </span>
+                  <span style={{ color: '#991b1b', fontWeight: 600 }}>
+                    Failed: {bulkResult.errors?.length || 0}
+                  </span>
+                </div>
+                
+                {bulkResult.errors && bulkResult.errors.length > 0 && (
+                  <div style={{ marginTop: '12px' }}>
+                    <h5 style={{ margin: '0 0 8px 0', color: '#991b1b' }}>Error Logs:</h5>
+                    <div style={{ 
+                      maxHeight: '150px', 
+                      overflowY: 'auto', 
+                      background: '#fff', 
+                      padding: '12px', 
+                      borderRadius: '4px',
+                      border: '1px solid #fecaca',
+                      fontSize: '0.85rem',
+                      fontFamily: 'monospace',
+                      color: '#7f1d1d'
+                    }}>
+                      {bulkResult.errors.map((err, i) => (
+                        <div key={i} style={{ marginBottom: '4px', paddingBottom: '4px', borderBottom: i < bulkResult.errors.length - 1 ? '1px solid #fee2e2' : 'none' }}>
+                          {err}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
