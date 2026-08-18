@@ -161,23 +161,27 @@ export const bulkUploadProducts = async (req, res, next) => {
 
         const stream = Readable.from(req.file.buffer);
 
-        stream.pipe(csv({ mapHeaders: ({ header }) => header.trim() }))
+        stream.pipe(csv({ mapHeaders: ({ header }) => header.trim().toLowerCase() }))
             .on('data', (data) => results.push(data))
             .on('end', async () => {
                 let successCount = 0;
+                // If it's TSV, keys might be joined by \t
                 if (results.length > 0 && Object.keys(results[0]).length === 1 && Object.keys(results[0])[0].includes('\t')) {
                     return errorResponse(res, { message: 'It looks like you uploaded a Tab-Separated file instead of Comma-Separated. Please save your file as CSV (Comma Delimited) and try again.', statusCode: 400 });
                 }
                 
                 for (const row of results) {
                     try {
-                        const {
-                            Name, Description, 'Category Slugs': categorySlugsStr,
-                            Material, Color, 'Base Price': basePriceStr,
-                            MRP: mrpStr, 'Stock Quantity': stockQtyStr,
-                            'Image URLs': imageUrlsStr,
-                            'Collection Slugs': collectionSlugsStr
-                        } = row;
+                        const Name = row['name'];
+                        const Description = row['description'];
+                        const categorySlugsStr = row['category slugs'] || row['category slug'];
+                        const Material = row['material'];
+                        const Color = row['color'];
+                        const basePriceStr = row['base price'] || row['price'];
+                        const mrpStr = row['mrp'];
+                        const stockQtyStr = row['stock quantity'] || row['stock'] || row['quantity'];
+                        const imageUrlsStr = row['image urls'] || row['image url'] || row['images'];
+                        const collectionSlugsStr = row['collection slugs'] || row['collection slug'] || row['collections'];
 
                         const missing = [];
                         if (!Name) missing.push('Name');
