@@ -34,9 +34,8 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await api.get('/products');
-        const products = res.data.data.products;
-        const found = products.find(p => p.slug === slug || p.id === slug);
+        const res = await api.get(`/products/${slug}`);
+        const found = res.data.data;
         setProduct(found || null);
         
         if (found && isAuthenticated) {
