@@ -217,7 +217,7 @@ async function main() {
       update: {
         name: p.name,
         description: p.desc,
-        categoryId,
+        categories: { connect: [{ id: categoryId }] },
         material: p.material,
         color: p.color,
         basePrice: p.basePrice,
@@ -230,7 +230,7 @@ async function main() {
         name: p.name,
         slug: p.slug,
         description: p.desc,
-        categoryId,
+        categories: { connect: [{ id: categoryId }] },
         material: p.material,
         color: p.color,
         basePrice: p.basePrice,

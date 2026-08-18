@@ -65,7 +65,7 @@ export const getDashboardStats = async (req, res, next) => {
             // Sales by category
             prisma.orderItem.findMany({
                 where: { order: { status: { in: revenueStatuses }, createdAt: { gte: startDate } }, productId: { not: null } },
-                include: { product: { include: { category: true } } }
+                include: { product: { include: { categories: true } } }
             }),
             // Pending returns (current state)
             prisma.returnRequest.count({
@@ -117,8 +117,8 @@ export const getDashboardStats = async (req, res, next) => {
         // Category Sales Map
         const catSales = {};
         categorySalesRaw.forEach(item => {
-            if (item.product && item.product.category) {
-                const catName = item.product.category.name;
+            if (item.product && item.product.categories && item.product.categories.length > 0) {
+                const catName = item.product.categories[0].name;
                 catSales[catName] = (catSales[catName] || 0) + (item.quantity * item.priceAtPurchase);
             }
         });
