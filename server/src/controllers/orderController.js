@@ -75,7 +75,7 @@ export const createOrder = async (req, res) => {
 
       const product = await prisma.product.findUnique({ 
         where: { id: item.productId },
-        include: { collections: true, category: true }
+        include: { collections: true, categories: true }
       });
       if (!product) return errorResponse(res, `Product not found: ${item.productId}`, 404);
 

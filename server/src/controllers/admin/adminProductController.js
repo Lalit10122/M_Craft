@@ -571,7 +571,7 @@ export const getCollection = async (req, res, next) => {
                 products: {
                     include: {
                         product: {
-                            include: { category: true }
+                            include: { categories: true }
                         }
                     }
                 }
