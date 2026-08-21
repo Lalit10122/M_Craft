@@ -9,7 +9,7 @@ router.get('/public', async (req, res, next) => {
         const settings = await prisma.setting.findMany({
             where: {
                 key: {
-                    in: ['global_banner_config'] // only expose specific public settings
+                    in: ['global_banner_config', 'homepage_hero_slides', 'homepage_brand_story', 'homepage_newsletter']
                 }
             }
         });
@@ -22,6 +22,7 @@ router.get('/public', async (req, res, next) => {
             }
             return acc;
         }, {});
+
         
         return successResponse(res, { data: settingsObj, message: 'Public settings retrieved successfully' });
     } catch (error) {

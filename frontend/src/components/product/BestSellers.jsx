@@ -44,7 +44,7 @@ const BestSellers = ({ onQuickView }) => {
       style={{ marginTop: 'var(--spacing-xxl)' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--spacing-lg)' }}>
-        <h2 style={{ margin: 0, fontWeight: 700 }}>Best Sellers</h2>
+        <h2 style={{ margin: 0, fontWeight: 400, fontFamily: 'var(--font-heading)', fontSize: '2rem', color: 'var(--color-text-main)' }}>Featured Collection</h2>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div className="hide-mobile" style={{ display: 'flex', gap: '8px' }}>

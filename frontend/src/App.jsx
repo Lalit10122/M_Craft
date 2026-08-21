@@ -63,6 +63,7 @@ const ReviewsModeration = React.lazy(() => import('./pages/admin/ReviewsModerati
 const Pincodes = React.lazy(() => import('./pages/admin/Pincodes'));
 const LowStock = React.lazy(() => import('./pages/admin/LowStock'));
 const Settings = React.lazy(() => import('./pages/admin/Settings'));
+const HomepageEditor = React.lazy(() => import('./pages/admin/HomepageEditor'));
 const AdminPromotions = React.lazy(() => import('./pages/admin/Promotions'));
 const AdminCategoryAttributes = React.lazy(() => import('./pages/admin/CategoryAttributes'));
 const AdminBoxBuilder = React.lazy(() => import('./pages/admin/BoxBuilder'));
@@ -163,6 +164,7 @@ const AnimatedRoutes = () => {
         <Route path="/admin/pincodes" element={<AdminProtectedRoute><AdminLayout><Pincodes /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/admin/low-stock" element={<AdminProtectedRoute><AdminLayout><LowStock /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/admin/settings" element={<AdminProtectedRoute><AdminLayout><Settings /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/admin/homepage-editor" element={<AdminProtectedRoute><AdminLayout><HomepageEditor /></AdminLayout></AdminProtectedRoute>} />
         
         <Route path="/admin/promotions" element={<AdminProtectedRoute><AdminLayout><AdminPromotions /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/admin/category-attributes" element={<AdminProtectedRoute><AdminLayout><AdminCategoryAttributes /></AdminLayout></AdminProtectedRoute>} />

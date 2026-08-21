@@ -169,4 +169,10 @@ router.put('/theme', updateTheme);
 router.post('/theme/reset', resetTheme);
 router.post('/theme/logo', upload.single('logo'), uploadLogo);
 
+// Settings (Homepage, Brand, etc)
+import { resetSettings, uploadSettingImage } from '../controllers/admin/adminSettingsController.js';
+// Settings
+router.post('/settings/reset', resetSettings);
+router.post('/settings/image', upload.single('image'), uploadSettingImage);
+
 export default router;

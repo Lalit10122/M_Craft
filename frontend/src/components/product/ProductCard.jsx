@@ -48,16 +48,16 @@ const ProductCard = ({ product, square = false, onQuickView }) => {
   const isSale = product.activePromotion || (product.mrp && product.mrp > product.basePrice);
 
   const activeBadges = [];
-  if (isLowStock) activeBadges.push({ label: 'LOW STOCK', bg: '#dc2626', color: 'white' });
-  if (isSale && activeBadges.length < 2) activeBadges.push({ label: 'SALE', bg: 'var(--color-primary)', color: 'white' });
-  if (isNew && activeBadges.length < 2) activeBadges.push({ label: 'NEW', bg: '#111', color: 'white' });
+  if (isLowStock) activeBadges.push({ label: 'LOW STOCK', bg: 'var(--color-error)', color: 'white' });
+  if (isSale && activeBadges.length < 2) activeBadges.push({ label: 'SALE', bg: 'var(--color-secondary)', color: 'white' });
+  if (isNew && activeBadges.length < 2) activeBadges.push({ label: 'NEW', bg: 'var(--color-primary)', color: 'white' });
 
   // Branded fallback placeholder
   const placeholderImg = 'https://images.unsplash.com/photo-1599643478524-fb5244dc6eb4?q=80&w=400&auto=format&fit=crop';
 
   return (
     <motion.div 
-      className="glass-panel product-card" 
+      className="product-card" 
       style={{ padding: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', cursor: 'pointer', overflow: 'hidden', position: 'relative', height: '100%' }}
       whileHover={{ 
         y: -5,
@@ -107,7 +107,7 @@ const ProductCard = ({ product, square = false, onQuickView }) => {
             justifyContent: 'center',
             cursor: 'pointer',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            color: wishlisted ? '#dc2626' : '#111'
+            color: wishlisted ? 'var(--color-error)' : 'var(--color-primary)'
           }}
         >
           <motion.div
@@ -115,7 +115,7 @@ const ProductCard = ({ product, square = false, onQuickView }) => {
             animate={{ scale: wishlisted ? [1, 1.2, 1] : 1 }}
             transition={{ duration: 0.3 }}
           >
-            <Heart size={18} fill={wishlisted ? '#dc2626' : 'transparent'} />
+            <Heart size={18} fill={wishlisted ? 'var(--color-error)' : 'transparent'} />
           </motion.div>
         </motion.button>
 
@@ -131,19 +131,19 @@ const ProductCard = ({ product, square = false, onQuickView }) => {
               {onQuickView && (
                 <button 
                   className="btn btn-outline" 
-                  style={{ flex: 1, padding: '10px', background: 'rgba(255, 255, 255, 0.95)', border: 'none' }}
+                  style={{ flex: 1, padding: '10px', background: 'rgba(255, 255, 255, 0.95)', border: '1px solid var(--color-border)' }}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     onQuickView(product);
                   }}
                 >
-                  <Eye size={16} />
+                  <Eye size={16} color="var(--color-primary)" />
                 </button>
               )}
               <button 
                 className="btn btn-primary" 
-                style={{ flex: 3, padding: '10px', background: 'rgba(17, 17, 17, 0.95)', border: 'none' }}
+                style={{ flex: 3, padding: '10px', background: 'var(--color-primary)', border: 'none' }}
                 onClick={handleQuickAdd}
               >
                 <ShoppingBag size={16} /> Quick Add
@@ -154,47 +154,38 @@ const ProductCard = ({ product, square = false, onQuickView }) => {
       </motion.div>
       
       {/* Product Info */}
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <h4 style={{ margin: '8px 0 4px 0', fontSize: '1rem', transition: 'color 0.2s ease', fontWeight: 600 }}>{product.name}</h4>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '0 4px' }}>
+        <h4 style={{ margin: '8px 0 4px 0', fontSize: '1.1rem', fontFamily: 'var(--font-heading)', fontWeight: 400, color: 'var(--color-text-main)' }}>{product.name}</h4>
         
         {/* Ratings */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '12px' }}>
           {(!product.reviewCount || product.reviewCount === 0) ? (
-            <span style={{ fontSize: '0.8rem', color: '#888' }}>No reviews yet</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>No reviews yet</span>
           ) : (
             <>
-              <div style={{ display: 'flex', color: '#fbbf24' }}>
+              <div style={{ display: 'flex', color: 'var(--color-accent)' }}>
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={14} fill={i < (product.rating || 5) ? '#fbbf24' : 'transparent'} />
+                  <Star key={i} size={14} fill={i < (product.rating || 5) ? 'var(--color-accent)' : 'transparent'} />
                 ))}
               </div>
-              <span style={{ fontSize: '0.8rem', color: '#888' }}>({product.reviewCount})</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>({product.reviewCount})</span>
             </>
           )}
         </div>
 
         {/* Pricing */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: 'auto' }}>
-          <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-primary)' }}>₹{product.basePrice}</span>
+          <span style={{ fontWeight: 500, fontSize: '1.1rem', color: 'var(--color-text-main)' }}>₹{product.basePrice}</span>
           {product.mrp && product.mrp > product.basePrice && (
             <>
               <span style={{ textDecoration: 'line-through', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>₹{product.mrp}</span>
-              <span style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary)', fontWeight: 600, letterSpacing: '0.05em' }}>
                 {Math.round(((product.mrp - product.basePrice) / product.mrp) * 100)}% OFF
               </span>
             </>
           )}
         </div>
       </div>
-
-      {/* Explicit Add to Cart Button */}
-      <button 
-        className="btn btn-primary" 
-        style={{ width: '100%', padding: '10px', marginTop: '16px', fontSize: '0.9rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-        onClick={handleQuickAdd}
-      >
-        <ShoppingBag size={16} /> Add to Cart
-      </button>
     </motion.div>
   );
 };
