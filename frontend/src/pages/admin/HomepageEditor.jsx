@@ -37,10 +37,16 @@ const HomepageEditor = () => {
       setLoading(true);
       const res = await api.get('/admin/settings');
       if (res.data.data) {
+        
+        const safeParse = (str, defaultVal) => {
+          if (!str) return defaultVal;
+          try { return JSON.parse(str); } catch { return defaultVal; }
+        };
+
         setSettings({
-          homepage_hero_slides: res.data.data.homepage_hero_slides || [],
-          homepage_brand_story: res.data.data.homepage_brand_story || {},
-          homepage_newsletter: res.data.data.homepage_newsletter || {}
+          homepage_hero_slides: safeParse(res.data.data.homepage_hero_slides, []),
+          homepage_brand_story: safeParse(res.data.data.homepage_brand_story, {}),
+          homepage_newsletter: safeParse(res.data.data.homepage_newsletter, {})
         });
       }
     } catch (err) {
@@ -54,7 +60,11 @@ const HomepageEditor = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.put('/admin/settings', { settings });
+      const promises = Object.entries(settings).map(([key, value]) => 
+        api.put('/admin/settings', { key, value: JSON.stringify(value) })
+      );
+      await Promise.all(promises);
+      
       showToast('Homepage settings saved successfully!', 'success');
     } catch (err) {
       showToast('Failed to save settings.', 'error');
