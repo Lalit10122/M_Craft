@@ -1,6 +1,5 @@
 import { prisma } from '../../config/db.js';
 import { successResponse, errorResponse } from '../../utils/apiResponse.js';
-import { uploadToCloudinary } from '../../utils/cloudinary.js';
 
 export const defaultSettings = {
     homepage_hero_slides: JSON.stringify([
@@ -174,8 +173,11 @@ export const uploadSettingImage = async (req, res, next) => {
         if (!req.file) {
             return errorResponse(res, { message: 'No image provided', statusCode: 400 });
         }
-        const result = await uploadToCloudinary(req.file.buffer, 'settings');
-        return successResponse(res, { data: { url: result.secure_url }, message: 'Image uploaded successfully' });
+        
+        // Use multer/S3 path
+        const url = req.file.path || req.file.location;
+        
+        return successResponse(res, { data: { url }, message: 'Image uploaded successfully' });
     } catch (error) {
         next(error);
     }
