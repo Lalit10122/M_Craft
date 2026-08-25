@@ -127,7 +127,7 @@ const Home = () => {
           <AnimatePresence mode="wait">
             {slides[currentSlide] && (
               <motion.div key={currentSlide} initial="hidden" animate="visible" exit="hidden" variants={containerVariants}>
-                <motion.h1 variants={itemVariants} style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', marginBottom: 'var(--spacing-md)', color: 'white', fontWeight: 400, fontFamily: 'var(--font-heading)', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+                <motion.h1 variants={itemVariants} style={{ fontSize: 'clamp(2rem, 8vw, 4.5rem)', marginBottom: 'var(--spacing-md)', color: 'white', fontWeight: 400, fontFamily: 'var(--font-heading)', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
                   {slides[currentSlide].title}
                 </motion.h1>
 
@@ -166,7 +166,7 @@ const Home = () => {
       {/* 3. Curated Categories */}
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={sectionVariants} className="container" style={{ marginTop: 'var(--spacing-3xl)' }}>
         <h2 style={{ marginBottom: 'var(--spacing-2xl)', textAlign: 'center', fontWeight: 400, fontFamily: 'var(--font-heading)', fontSize: '2rem', color: 'var(--color-text-main)' }}>Curated Collections</h2>
-        <RevealGrid className="category-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--spacing-lg)' }}>
+        <RevealGrid className="category-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 'var(--spacing-lg)' }}>
           {[
             { title: 'Necklaces', img: 'https://images.unsplash.com/photo-1599643478524-fb5244dc6eb4?q=80&w=600&auto=format&fit=crop' },
             { title: 'Rings', img: 'https://images.unsplash.com/photo-1605100804763-247f67b2548e?q=80&w=600&auto=format&fit=crop' },

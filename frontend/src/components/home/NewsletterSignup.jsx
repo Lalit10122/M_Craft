@@ -47,7 +47,7 @@ const NewsletterSignup = ({ data }) => {
     >
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
         background: 'var(--color-primary)', 
         color: 'white',
         minHeight: '400px',

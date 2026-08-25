@@ -51,7 +51,7 @@ const BrandStory = ({ data }) => {
           {content.background_text}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--spacing-3xl)', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 'var(--spacing-3xl)', alignItems: 'center', position: 'relative', zIndex: 1 }}>
           
           <div style={{ position: 'relative', paddingTop: 'var(--spacing-xl)' }}>
             <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: 'var(--spacing-md)', fontFamily: 'var(--font-heading)', fontWeight: 400, lineHeight: 1.1, color: 'var(--color-text-main)' }}>
@@ -79,7 +79,7 @@ const BrandStory = ({ data }) => {
             </div>
             
             {/* Small offset badge/caption */}
-            <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', background: 'var(--color-surface)', padding: '16px 24px', zIndex: 2, boxShadow: 'var(--shadow-md)', border: '1px solid var(--color-border)' }}>
+            <div style={{ position: 'absolute', bottom: '-20px', left: '10px', background: 'var(--color-surface)', padding: '16px 24px', zIndex: 2, boxShadow: 'var(--shadow-md)', border: '1px solid var(--color-border)' }}>
               <span style={{ display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-muted)', marginBottom: '4px' }}>{content.badge_top}</span>
               <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 400 }}>{content.badge_bottom}</span>
             </div>
