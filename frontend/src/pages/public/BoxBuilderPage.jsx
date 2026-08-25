@@ -75,7 +75,7 @@ const BoxBuilderPage = () => {
         </p>
       </div>
 
-      <RevealGrid>
+      <RevealGrid className="responsive-grid">
         {config.eligibleProducts.map((ep, index) => {
           const product = ep.product;
           const isSelected = selections.includes(product.id);

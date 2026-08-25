@@ -155,7 +155,7 @@ const AboutUs = () => {
             <h2 style={{ fontSize: '2.5rem', fontWeight: 400 }}>The Hands Behind the Craft</h2>
           </motion.div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 'var(--spacing-xl)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: 'var(--spacing-xl)' }}>
             {artisans.map((artisan, idx) => (
               <ArtisanPortrait key={idx} artisan={artisan} />
             ))}
