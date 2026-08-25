@@ -47,6 +47,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Low Stock', path: '/admin/low-stock', icon: <AlertTriangle size={18} /> },
     { name: 'Appearance', path: '/admin/appearance', icon: <Palette size={18} /> },
     { name: 'Homepage Editor', path: '/admin/homepage-editor', icon: <LayoutDashboard size={18} /> },
+    { name: 'About Us Editor', path: '/admin/about-editor', icon: <LayoutDashboard size={18} /> },
     { name: 'Settings', path: '/admin/settings', icon: <Settings size={18} /> },
   ];
 

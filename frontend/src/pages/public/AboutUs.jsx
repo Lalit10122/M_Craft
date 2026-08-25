@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import api from '../../utils/api';
 import { motion, useScroll, useTransform, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from './AboutUs.module.css';
@@ -94,7 +95,22 @@ const AboutUs = () => {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const { scrollY } = useScroll();
+  
   const [activeStep, setActiveStep] = useState(0);
+  const [content, setContent] = useState({
+      hero_image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2000&auto=format&fit=crop',
+      process_images: processSteps.map(s => s.img),
+      artisan_images: artisans.map(a => a.img)
+  });
+
+  useEffect(() => {
+    api.get('/settings/public').then(res => {
+      if (res.data?.data?.about_us_content) {
+        setContent(res.data.data.about_us_content);
+      }
+    }).catch(console.error);
+  }, []);
+
   
   // Parallax for hero
   const heroY = useTransform(scrollY, [0, 1000], [0, 300]);
@@ -107,7 +123,7 @@ const AboutUs = () => {
         <motion.div
           style={{
             position: 'absolute', inset: 0,
-            backgroundImage: "url('https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2000&auto=format&fit=crop')",
+            backgroundImage: `url(${content.hero_image})`,
             backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0,
             y: shouldReduceMotion ? 0 : heroY
           }}
@@ -169,7 +185,7 @@ const AboutUs = () => {
               <AnimatePresence mode="wait">
                 <motion.img 
                   key={activeStep}
-                  src={processSteps[activeStep].img}
+                  src={content.process_images[activeStep] || processSteps[activeStep].img}
                   initial={{ opacity: 0, scale: 1.05 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, transition: { duration: 0.4 } }}
@@ -207,7 +223,7 @@ const AboutUs = () => {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(2rem, 4vw, 4rem)' }}>
             {artisans.map((artisan, idx) => (
-              <ArtisanPortrait key={idx} artisan={artisan} index={idx} />
+              <ArtisanPortrait key={idx} artisan={{...artisan, img: content.artisan_images[idx] || artisan.img}} index={idx} />
             ))}
           </div>
         </div>

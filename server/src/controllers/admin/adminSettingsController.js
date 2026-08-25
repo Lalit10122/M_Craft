@@ -45,6 +45,21 @@ export const defaultSettings = {
         heading_italic: 'Inner Circle',
         description: 'Subscribe to receive updates on new arrivals, special offers, and our latest stories.'
     })
+,
+    about_us_content: JSON.stringify({
+        hero_image: '/images/about/hero.jpg',
+        process_images: [
+            '/images/about/process_1.jpg',
+            '/images/about/process_2.jpg',
+            '/images/about/process_3.jpg',
+            '/images/about/process_4.jpg'
+        ],
+        artisan_images: [
+            '/images/about/artisan_1.jpg',
+            '/images/about/artisan_2.jpg',
+            '/images/about/artisan_3.jpg'
+        ]
+    })
 };
 
 export const getSettings = async (req, res, next) => {
