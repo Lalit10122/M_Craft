@@ -133,6 +133,28 @@ const Shop = () => {
     fetchProducts();
   }, [searchParams, page]);
 
+
+  const activeFilters = [];
+  if (categorySlug) activeFilters.push({ label: 'Category: ' + categorySlug.replace('-', ' '), key: 'category', value: categorySlug });
+  if (collectionSlug) activeFilters.push({ label: 'Collection: ' + collectionSlug.replace('-', ' '), key: 'collection', value: collectionSlug });
+  if (searchParams.get('inStock')) activeFilters.push({ label: searchParams.get('inStock') === 'true' ? 'In Stock' : 'Out of Stock', key: 'inStock' });
+  if (searchParams.get('minPrice') || searchParams.get('maxPrice')) {
+    const min = searchParams.get('minPrice');
+    const max = searchParams.get('maxPrice');
+    let label = min && max ? '₹' + min + ' - ₹' + max : max ? 'Under ₹' + max : 'Over ₹' + min;
+    activeFilters.push({ label, key: 'price' });
+  }
+  if (searchParams.get('rating')) activeFilters.push({ label: searchParams.get('rating') + '+ Stars', key: 'rating' });
+  if (searchParams.get('discount')) activeFilters.push({ label: searchParams.get('discount') + '% or more', key: 'discount' });
+  if (categoryAttributes) {
+    categoryAttributes.forEach(attr => {
+      const filterKey = attr.name.toLowerCase();
+      searchParams.getAll(filterKey).forEach(val => {
+        activeFilters.push({ label: val, key: filterKey, value: val });
+      });
+    });
+  }
+
   const filterDesc = collectionSlug ? `${collectionSlug.replace('-', ' ')}` : categorySlug ? `${categorySlug.replace('-', ' ')}` : query ? `results for "${query}"` : 'all products';
 
   return (
@@ -350,6 +372,31 @@ const Shop = () => {
 
         {/* Product Grid Area */}
         <main style={{ flex: 1 }}>
+            {activeFilters.length > 0 && (
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: 'var(--spacing-xl)', alignItems: 'center' }}>
+                 <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginRight: '4px' }}>Active Filters:</span>
+                 {activeFilters.map((f, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'var(--color-background-alt, #f5f5f5)', border: '1px solid var(--color-border)', borderRadius: '20px', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                       {f.label}
+                       <button onClick={() => {
+                           const p = new URLSearchParams(searchParams);
+                           if (f.key === 'category') p.delete('category');
+                           else if (f.key === 'collection') p.delete('collection');
+                           else if (f.key === 'price') { p.delete('minPrice'); p.delete('maxPrice'); }
+                           else if (f.value) {
+                               const current = p.getAll(f.key);
+                               p.delete(f.key);
+                               current.filter(v => v !== f.value).forEach(v => p.append(f.key, v));
+                           } else {
+                               p.delete(f.key);
+                           }
+                           setSearchParams(p);
+                       }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'var(--color-text-muted)' }}><X size={14} /></button>
+                    </span>
+                 ))}
+                 <button onClick={() => setSearchParams({})} style={{ background: 'none', border: 'none', fontSize: '0.85rem', color: 'var(--color-text)', cursor: 'pointer', textDecoration: 'underline', padding: '4px 8px', fontWeight: 500 }}>Clear all</button>
+              </div>
+            )}
           {error ? (
             <div style={{ padding: 'var(--spacing-xxl)', textAlign: 'center', background: 'white', borderRadius: '2px', border: '1px solid var(--color-border)' }}>
               <h3>Oops, something went wrong</h3>
