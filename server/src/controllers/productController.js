@@ -4,7 +4,7 @@ import { calculateDiscountPercent, getBestActivePromotion } from '../services/pr
 
 export const listProducts = async (req, res, next) => {
   try {
-    const { category, color, collection, minPrice, maxPrice, sort, page = 1, limit = 12, search, q, isBestSeller, promotion, ...attributeFilters } = req.query;
+    const { category, color, collection, minPrice, maxPrice, sort, page = 1, limit = 12, search, q, isBestSeller, promotion, inStock, rating, discount, ...attributeFilters } = req.query;
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
@@ -12,6 +12,8 @@ export const listProducts = async (req, res, next) => {
     const where = { isActive: true };
 
     if (isBestSeller === 'true') where.isBestSeller = true;
+    if (inStock === 'true') where.stockQty = { gt: 0 };
+    if (inStock === 'false') where.stockQty = 0;
     if (category) where.categories = { some: { slug: category } };
     if (collection) where.collections = { some: { collection: { slug: collection } } };
     if (color) where.color = { equals: color, mode: 'insensitive' };
@@ -32,7 +34,7 @@ export const listProducts = async (req, res, next) => {
       where.attributeValues = {
         some: {
           OR: Object.entries(attributeFilters).map(([key, value]) => ({
-            attribute: { key },
+            attribute: { name: key },
             value: { equals: value, mode: 'insensitive' }
           }))
         }
@@ -45,12 +47,13 @@ export const listProducts = async (req, res, next) => {
     else if (sort === 'oldest') orderBy = { createdAt: 'asc' };
     else orderBy = { createdAt: 'desc' };
 
-    const [productsRaw, total, activePromotionsList] = await Promise.all([
+    const requiresJsFiltering = !!(rating || discount);
+
+    const [productsRaw, activePromotionsList] = await Promise.all([
       prisma.product.findMany({
         where,
         orderBy,
-        skip,
-        take: limitNumber,
+        ...(requiresJsFiltering ? {} : { skip, take: limitNumber }),
         include: {
           categories: { select: { name: true, slug: true } },
           collections: true,
@@ -59,10 +62,10 @@ export const listProducts = async (req, res, next) => {
           },
           _count: {
             select: { reviews: { where: { isApproved: true } } }
-          }
+          },
+          ...(requiresJsFiltering ? { reviews: { select: { rating: true }, where: { isApproved: true } } } : {})
         }
       }),
-      prisma.product.count({ where }),
       prisma.promotion.findMany({
         where: { isActive: true, startDate: { lte: new Date() }, endDate: { gte: new Date() } },
         include: { specificProducts: true }
@@ -74,18 +77,43 @@ export const listProducts = async (req, res, next) => {
       const discountPercent = calculateDiscountPercent(p.mrp, p.basePrice);
       const activePromotion = getBestActivePromotion(p, p.basePrice, activePromotionsList);
       
+      let averageRating = 0;
+      if (p.reviews && p.reviews.length > 0) {
+        const sum = p.reviews.reduce((acc, r) => acc + r.rating, 0);
+        averageRating = sum / p.reviews.length;
+      }
+      
       const attributes = {};
       if (p.attributeValues) {
          p.attributeValues.forEach(attrVal => {
-             attributes[attrVal.attribute.key] = attrVal.value;
+             attributes[attrVal.attribute.name] = attrVal.value;
          });
       }
       
-      return { ...pWithImages, discountPercent, activePromotion, attributes };
+      return { ...pWithImages, discountPercent, activePromotion, attributes, averageRating, reviewCount: p._count?.reviews || 0 };
     });
     
     if (promotion) {
       products = products.filter(p => p.activePromotion && p.activePromotion.name.toLowerCase().includes(promotion.toLowerCase()));
+    }
+
+    if (requiresJsFiltering) {
+      if (rating) {
+        const ratingVal = parseFloat(rating);
+        products = products.filter(p => p.averageRating >= ratingVal);
+      }
+      if (discount) {
+        const discountVal = parseFloat(discount);
+        products = products.filter(p => p.discountPercent >= discountVal);
+      }
+    }
+
+    let total = 0;
+    if (requiresJsFiltering) {
+      total = products.length;
+      products = products.slice(skip, skip + limitNumber);
+    } else {
+      total = await prisma.product.count({ where });
     }
 
     return successResponse(res, {
